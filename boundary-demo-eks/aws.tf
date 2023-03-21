@@ -76,7 +76,17 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
   auto_accept               = true
 }
 
+resource "time_sleep" "wait_60s" {
+  depends_on = [
+    aws_vpc_peering_connection_accepter.peer
+  ]
+  create_duration = "60s"
+}
+
 resource "aws_vpc_peering_connection_options" "dns" {
+  depends_on = [
+    time_sleep.wait_60s
+  ]
   vpc_peering_connection_id = hcp_aws_network_peering.vault.provider_peering_id
   accepter {
     allow_remote_vpc_dns_resolution = true
@@ -155,7 +165,7 @@ module "eks" {
 
 resource "aws_instance" "ssh-cert-target" {
   depends_on = [
-    
+    vault_ssh_secret_backend_ca.ssh_ca, aws_vpc_peering_connection_options.dns
   ]
   lifecycle {
     ignore_changes = [user_data_base64]
@@ -243,5 +253,11 @@ module "rds-sec-group" {
       rule = "postgresql-tcp"
       source_security_group_id = module.worker-sec-group.security_group_id
     },
-  ]  
+  ]
+  ingress_with_cidr_blocks = [
+    {
+      rule = "postgresql-tcp"
+      cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
+    }
+  ]
 }

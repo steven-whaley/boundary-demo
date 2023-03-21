@@ -173,6 +173,7 @@ resource "boundary_credential_store_vault" "pie_vault" {
   scope_id    = boundary_scope.pie_w2_project.id
 }
 
+# Create SSH Cert credential library
 resource "boundary_credential_library_vault_ssh_certificate" "ssh_cert" {
   name                = "ssh_cert"
   description         = "Signed SSH Certificate Credential Library"
@@ -189,11 +190,25 @@ resource "boundary_credential_library_vault_ssh_certificate" "ssh_cert" {
 # Create Postgres RDS Target
 resource "boundary_target" "dev_db" {
   type                     = "tcp"
-  name                     = "dev_db"
-  description              = "Dev main database"
-  scope_id                 = boundary_scope.dev_w2_project.id
+  name                     = "pie_db"
+  description              = "PIE main database"
+  scope_id                 = boundary_scope.pie_w2_project.id
   session_connection_limit = -1
   default_port             = 5432
   address = split(":", aws_db_instance.postgres.endpoint)[0]
   egress_worker_filter = "\"us-west-2\" in \"/tags/region\""
+
+  brokered_credential_source_ids = [
+    boundary_credential_library_vault.database.id
+  ]
+}
+
+# Create Database Credential Library
+resource "boundary_credential_library_vault" "database" {
+  name                = "database"
+  description         = "Postgres DB Credential Library"
+  credential_store_id = boundary_credential_store_vault.pie_vault.id
+  path                = "database/creds/db1" # change to Vault backend path
+  http_method         = "GET"
+  credential_type = "username_password"
 }

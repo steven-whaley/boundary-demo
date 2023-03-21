@@ -43,6 +43,14 @@ data "vault_policy_document" "ssh-cert-role" {
     }
 }
 
+# Create Policy to read Dynamic DB secrets
+data "vault_policy_document" "db-secrets" {
+    rule {
+        path = "${vault_database_secrets_mount.postgres.path}/creds/db1"
+        capabilities = ["read"]
+    }
+}
+
 #Create vault policies from policy documents
 resource "vault_policy" "boundary-token-policy" {
     name = "boundary-token"
@@ -59,20 +67,27 @@ resource "vault_policy" "ssh-cert-role" {
     policy = data.vault_policy_document.ssh-cert-role.hcl
 }
 
+resource "vault_policy" "db-policy" {
+    name = "db-policy"
+    policy = data.vault_policy_document.db-secrets.hcl
+}
+
 # Create Token for Boundary to use for Credential Store
 resource "vault_token_auth_backend_role" "boundary-token-role" {
     role_name = "boundary-controller-role"
-    allowed_policies = [vault_policy.boundary-token-policy.name, vault_policy.ssh-public-key-policy.name]
+    allowed_policies = [vault_policy.boundary-token-policy.name, vault_policy.ssh-public-key-policy.name, vault_policy.db-policy.name]
 }
 
 resource "vault_token" "boundary_token" {
     role_name = vault_token_auth_backend_role.boundary-token-role.namespace
-    policies = [vault_policy.boundary-token-policy.name, vault_policy.ssh-cert-role.name]
+    policies = [vault_policy.boundary-token-policy.name, vault_policy.ssh-cert-role.name, vault_policy.db-policy.name]
     no_parent = true
     renewable = true
     ttl = "24h"
     period = "20m"
 }
+
+#### SSH Secrets Engine
 
 #Configure SSH Certificate Engine
 resource "vault_mount" "ssh" {
@@ -96,6 +111,7 @@ resource "vault_token" "read-key" {
   renew_increment = 86400
 }
 
+# Create Role to generate SSH certificate for credential injection into Boundary
 resource "vault_ssh_secret_backend_role" "cert-role" {
     name          = "cert-role"
     backend       = vault_mount.ssh.path
@@ -108,7 +124,33 @@ resource "vault_ssh_secret_backend_role" "cert-role" {
     allowed_extensions = "permit-pty"
     default_user  = "ec2-user"
     allowed_users = "*"
-    ttl = "30m"
+    ttl = "1800"
     cidr_list     = "0.0.0.0/0"
 }
 
+#### Database Secrets Engine
+# Create DB secrets mount
+resource "vault_database_secrets_mount" "postgres" {
+    path = "database"
+
+    postgresql {
+        name = "postgres"
+        username = var.db_user
+        password = var.db_password
+        connection_url    = "postgresql://{{username}}:{{password}}@${aws_db_instance.postgres.endpoint}/postgres"
+        verify_connection = true
+        allowed_roles = ["db1"]
+    }
+}
+
+# Create role for getting dynamic DB secrets
+
+resource "vault_database_secret_backend_role" "db1" {
+    name = "db1"
+    backend = vault_database_secrets_mount.postgres.path
+    db_name = vault_database_secrets_mount.postgres.postgresql[0].name
+    creation_statements = [
+        "CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
+        "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
+    ]
+}
