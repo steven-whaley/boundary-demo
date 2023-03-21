@@ -163,13 +163,13 @@ resource "boundary_target" "pie_target_tcp" {
   egress_worker_filter = "\"us-west-2\" in \"/tags/region\""
 }
 
-# Create Vault Credential store
+# Create PIE Vault Credential store
 resource "boundary_credential_store_vault" "pie_vault" {
   name        = "pie_vault"
   description = "PIE Vault Credential Store"
-  namespace = "admin"
+  namespace = "admin/${vault_namespace.pie.path_fq}"
   address     = data.tfe_outputs.boundary_demo_init.values.vault_pub_url
-  token       = vault_token.boundary_token.client_token
+  token       = vault_token.boundary-token-pie.client_token
   scope_id    = boundary_scope.pie_w2_project.id
 }
 
@@ -190,9 +190,9 @@ resource "boundary_credential_library_vault_ssh_certificate" "ssh_cert" {
 # Create Postgres RDS Target
 resource "boundary_target" "dev_db" {
   type                     = "tcp"
-  name                     = "pie_db"
-  description              = "PIE main database"
-  scope_id                 = boundary_scope.pie_w2_project.id
+  name                     = "dev_db"
+  description              = "Dev main database"
+  scope_id                 = boundary_scope.dev_w2_project.id
   session_connection_limit = -1
   default_port             = 5432
   address = split(":", aws_db_instance.postgres.endpoint)[0]
@@ -203,11 +203,21 @@ resource "boundary_target" "dev_db" {
   ]
 }
 
+# Create Dev Vault Credential store
+resource "boundary_credential_store_vault" "dev_vault" {
+  name        = "dev_vault"
+  description = "Dev Vault Credential Store"
+  namespace = "admin/${vault_namespace.dev.path_fq}"
+  address     = data.tfe_outputs.boundary_demo_init.values.vault_pub_url
+  token       = vault_token.boundary-token-dev.client_token
+  scope_id    = boundary_scope.dev_w2_project.id
+}
+
 # Create Database Credential Library
 resource "boundary_credential_library_vault" "database" {
   name                = "database"
   description         = "Postgres DB Credential Library"
-  credential_store_id = boundary_credential_store_vault.pie_vault.id
+  credential_store_id = boundary_credential_store_vault.dev_vault.id
   path                = "database/creds/db1" # change to Vault backend path
   http_method         = "GET"
   credential_type = "username_password"

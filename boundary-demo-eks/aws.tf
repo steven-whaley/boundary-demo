@@ -17,7 +17,7 @@ locals {
         }
       ]
       runcmd = [
-        ["curl", "-o", "/etc/ssh/ca-key.pub", "-H", "X-Vault-Token: ${vault_token.read-key.client_token}", "-H", "X-Vault-Namespace: admin/", "${data.tfe_outputs.boundary_demo_init.values.vault_priv_url}/v1/${vault_mount.ssh.path}/public_key"],
+        ["curl", "-o", "/etc/ssh/ca-key.pub", "-H", "X-Vault-Token: ${vault_token.read-key.client_token}", "-H", "X-Vault-Namespace: admin/${vault_namespace.pie.path_fq}", "${data.tfe_outputs.boundary_demo_init.values.vault_priv_url}/v1/${vault_mount.ssh.path}/public_key"],
         ["chown", "1000:1000", "/etc/ssh/ca-key.pub"],
         ["chmod", "644", "/etc/ssh/ca-key.pub"],
         ["systemctl", "restart", "sshd"]

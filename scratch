@@ -1,0 +1,1 @@
+curl -H "X-Vault-Token: hvs.CAESIB6jQPlDEzQT8c9bqcwDIHbwTRs5a8tkMTcmV7_-OeyEGicKImh2cy5tNE11WlN0V29YbW9Ha1RjQ1F2ZEdMMGguVko4YU4Q0lg" -H "X-Vault-Namespace admin/pie" "https://boundary-vault-cluster-private-vault-b76c6436.f439a42b.z1.hashicorp.cloud:8200/v1/ssh/public_key"

@@ -23,3 +23,7 @@ output "ssh_cert_ip" {
 output "db_endpoint" {
   value = aws_db_instance.postgres.endpoint
 }
+
+output "oidc_auth_method" {
+  value = boundary_auth_method_oidc.oidc_auth_method.id
+}
