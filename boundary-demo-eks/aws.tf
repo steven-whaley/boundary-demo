@@ -163,6 +163,7 @@ module "eks" {
   }
 }
 
+# SSH Target
 resource "aws_instance" "ssh-cert-target" {
   depends_on = [
     vault_ssh_secret_backend_ca.ssh_ca, aws_vpc_peering_connection_options.dns
@@ -186,7 +187,7 @@ resource "aws_instance" "ssh-cert-target" {
   }
 }
 
-#Create SSH Cert target security group
+#Create SSH target security group
 module "ssh-cert-sec-group" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "4.17.1"
@@ -259,5 +260,37 @@ module "rds-sec-group" {
       rule = "postgresql-tcp"
       cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
     }
+  ]
+}
+
+# Windows Target
+resource "aws_instance" "rdp-target" {
+  ami           = data.aws_ami.windows.id
+  instance_type = "t3.micro"
+
+  key_name               = data.aws_key_pair.sw-ec2key.key_name
+  monitoring             = true
+  subnet_id              = module.boundary-eks-vpc.private_subnets[1]
+  vpc_security_group_ids = [module.rdp-sec-group.security_group_id]
+
+  tags = {
+    Team = "IT"
+    Name = "rdp-target"
+  }
+}
+
+module "rdp-sec-group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "4.17.1"
+
+  name        = "rdp-sec-group"
+  description = "Allow Access from Boundary Worker to RDP target"
+  vpc_id      = module.boundary-eks-vpc.vpc_id
+  
+  ingress_with_source_security_group_id = [
+    {
+      rule = "rdp-tcp"
+      source_security_group_id = module.worker-sec-group.security_group_id
+    },
   ]
 }

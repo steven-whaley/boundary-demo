@@ -91,3 +91,25 @@ resource "boundary_role" "okta_pie_role" {
   scope_id       = boundary_scope.pie_org.id
   grant_scope_id = boundary_scope.pie_w2_project.id
 }
+
+# Create the managed group in boundary for IT users
+resource "boundary_managed_group" "it_managed_group" {
+  auth_method_id = boundary_auth_method_oidc.oidc_auth_method.id
+  filter         = "\"it_users\" in \"/token/groups\""
+  name           = "Corp Users Group"
+}
+
+# Create the role for dev users to connect to targets in the AWS W2 IT project
+resource "boundary_role" "okta_it_role" {
+  name          = "PIE Role"
+  principal_ids = [boundary_managed_group.it_managed_group.id]
+  grant_strings = [
+    "id=*;type=session;actions=list,read:self,cancel:self",
+    "id=*;type=target;actions=list,authorize-session,read",
+    "id=*;type=host-set;actions=list,no-op",
+    "id=*;type=host;actions=list,read",
+    "id=*;type=host-catalog;actions=list,read",
+  ]
+  scope_id       = boundary_scope.it_org.id
+  grant_scope_id = boundary_scope.it_w2_project.id
+}

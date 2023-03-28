@@ -94,6 +94,10 @@ module "worker-sec-group" {
     {
       rule = "postgresql-tcp"
       cidr_blocks = module.boundary-eks-vpc.vpc_cidr_block
+    },
+    {
+      rule = "rdp-tcp"
+      cidr_blocks = module.boundary-eks-vpc.vpc_cidr_block
     }
    ]
 

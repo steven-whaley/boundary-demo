@@ -26,6 +26,26 @@ data "aws_ami" "aws_linux_hvm2" {
   }
 }
 
+data "aws_ami" "windows" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["Windows_Server-2022-English-Full-Base-*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 data "aws_key_pair" "sw-ec2key" {
   key_name = "sw-ec2key"
 }
