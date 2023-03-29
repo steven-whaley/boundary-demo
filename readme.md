@@ -2,10 +2,13 @@
 
 ## Demo Environment
 This terraform code builds an HCP Boundary enviroment that inclues connectivity to HCP Vault for credential brokering and injection, Okta integration for OIDC authentication and managed groups, and a number of AWS resources that are used as workers and Boundary targets.  
-### Organization Structure
+
+### Boundary Organization Structure
 ![image](./org-structure.png)
-### Lab Diagram
+
+### Demo Environment Diagram
 ![image](./diagram.png)
+
 ### Components
 | Component | Purpose |
 | ----------- | ----------- |
@@ -24,8 +27,8 @@ This repo was build to run on Terraform Cloud/Enterprise.  It uses the tfe_outpu
 
 This repo consists of two modules:
  
-boundary-demo-init - This module builds an HCP Boundary Cluster and HCP Vault Cluster along with an associated HVN for the Vault Cluster.  
-boundary-demo-eks - This module does the bulk of the work, building out all of the Boundary and Vault configuration as well as the AWS components used as workers and targets.
+**boundary-demo-init** - This module builds an HCP Boundary Cluster and HCP Vault Cluster along with an associated HVN for the Vault Cluster.  
+**boundary-demo-eks** - This module does the bulk of the work, building out all of the Boundary and Vault configuration as well as the AWS components used as workers and targets.
 
 #### boundary-demo-init
 | Variable | Type | Purpose |
@@ -52,7 +55,7 @@ boundary-demo-eks - This module does the bulk of the work, building out all of t
 | AWS_ACCESS_KEY_ID | environment | The AWS Access Key used to authenticate the AWS provider |
 | AWS_SECRET_ACCESS_KEY | environment | The AWS Secret Key used to authenticate the AWS provider |
 
-Note: If you do not wish to use the Okta integration you can simply rename or delete the okta.tf configuration file.  All of the Okta related configuration is contained within the file and the terraform code should still build cleanly without it.  
+**Note**: If you do not wish to use the Okta integration you can simply rename or delete the okta.tf configuration file.  All of the Okta related configuration is contained within the file and the terraform code should still build cleanly without it.  
 
 ### To Build
 Set the variables to appropriate values and update the cloud block in the providers.tf files in each module as appropriate.  
@@ -61,3 +64,13 @@ Init and apply the boundary-demo-init terraform first
 `boundary-demo-init % terraform init
 boundary-demo-init % terraform apply -auto-approve`
 
+Once the boundary-demo-init run has completed init and apply the boundary-demo-eks terraform
+
+`boundary-demo-eks % terraform init
+boundary-demo-eks % terraform apply -auto-approve`
+
+**Notes**: 
+- The terraform code is generally stable and completes in a single run but if you experience issues a second run is usually enough to correct them.  
+- If for some reason you need to rebuild the EC2 Boundary worker you should also taint the boundary_worker resource as rebuilding the EC2 instance without re-creating the worker in Boundary and getting a new auth key will cause the worker to fail to connect to the Boundary control plane.  
+
+`boundary connect rdp -exec bash -target-id $TARGET_ID -- -c "open rdp://full%20address=s={{boundary.addr}} && sleep 600"`
