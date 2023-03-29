@@ -62,11 +62,13 @@ Set the variables to appropriate values and update the cloud block in the provid
 Init and apply the boundary-demo-init terraform first
 
 `boundary-demo-init % terraform init`
+
 `boundary-demo-init % terraform apply -auto-approve`
 
 Once the boundary-demo-init run has completed init and apply the boundary-demo-eks terraform
 
 `boundary-demo-eks % terraform init`
+
 `boundary-demo-eks % terraform apply -auto-approve`
 
 **Notes**: 
