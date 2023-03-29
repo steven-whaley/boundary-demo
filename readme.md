@@ -75,9 +75,9 @@ Once the boundary-demo-init run has completed init and apply the boundary-demo-e
 
 ## Connecting to Targets
 If you are using the Okta integration then:
-Members of the dev_users group in Okta have permissions to connect to the targets in the dev_w2_project scope
-Members of the pie_users group in Okta have permissions to connect to the targets in the pie_w2_project scope
-Members of the it_users group in Okta have permissions to connect to the targets in the it_w2_project scope
+- Members of the dev_users group in Okta have permissions to connect to the targets in the dev_w2_project scope
+- Members of the pie_users group in Okta have permissions to connect to the targets in the pie_w2_project scope
+- Members of the it_users group in Okta have permissions to connect to the targets in the it_w2_project scope
 
 ### Connect to the SSH certificate target
 `boundary connect ssh -target-scope-name pie_w2_project -target-name pie-ssh-cert-target`
@@ -86,8 +86,10 @@ Members of the it_users group in Okta have permissions to connect to the targets
 `boundary connect ssh -target-scope-name pie_w2_project -target-name pie-ssh-tcp-target -- -l ec2-user`
 
 ### Connect to the K8s target
-You will still need credentials to connect to the EKS cluster via K8s, which you can get via the AWS CLI.  Be sure to set the appropriate region where you deployed your AWS resources
+You will still need credentials to connect to the EKS cluster via K8s, which you can get via the AWS CLI.  Be sure to set the appropriate region where you deployed your AWS resources.
+
 `aws eks update-kubeconfig --name boundary-demo-cluster --region $AWS_REGION`
+
 `boundary connect kube -target-scope-name pie_w2_project -target-name pie-k8s-target -- get pods`
 
 ### Connect to the Postgres database target
