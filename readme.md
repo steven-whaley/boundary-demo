@@ -61,16 +61,37 @@ This repo consists of two modules:
 Set the variables to appropriate values and update the cloud block in the providers.tf files in each module as appropriate.  
 Init and apply the boundary-demo-init terraform first
 
-`boundary-demo-init % terraform init
-boundary-demo-init % terraform apply -auto-approve`
+`boundary-demo-init % terraform init`
+`boundary-demo-init % terraform apply -auto-approve`
 
 Once the boundary-demo-init run has completed init and apply the boundary-demo-eks terraform
 
-`boundary-demo-eks % terraform init
-boundary-demo-eks % terraform apply -auto-approve`
+`boundary-demo-eks % terraform init`
+`boundary-demo-eks % terraform apply -auto-approve`
 
 **Notes**: 
 - The terraform code is generally stable and completes in a single run but if you experience issues a second run is usually enough to correct them.  
 - If for some reason you need to rebuild the EC2 Boundary worker you should also taint the boundary_worker resource as rebuilding the EC2 instance without re-creating the worker in Boundary and getting a new auth key will cause the worker to fail to connect to the Boundary control plane.  
 
-`boundary connect rdp -exec bash -target-id $TARGET_ID -- -c "open rdp://full%20address=s={{boundary.addr}} && sleep 600"`
+## Connecting to Targets
+If you are using the Okta integration then:
+Members of the dev_users group in Okta have permissions to connect to the targets in the dev_w2_project scope
+Members of the pie_users group in Okta have permissions to connect to the targets in the pie_w2_project scope
+Members of the it_users group in Okta have permissions to connect to the targets in the it_w2_project scope
+
+### Connect to the SSH certificate target
+`boundary connect ssh -target-scope-name pie_w2_project -target-name pie-ssh-cert-target`
+
+### Connecting to SSH TCP taget with brokered credentials for some admin user configured on the server
+`boundary connect ssh -target-scope-name pie_w2_project -target-name pie-ssh-tcp-target -- -l ec2-user`
+
+### Connect to the K8s target
+You will still need credentials to connect to the EKS cluster via K8s, which you can get via the AWS CLI.  Be sure to set the appropriate region where you deployed your AWS resources
+`aws eks update-kubeconfig --name boundary-demo-cluster --region $AWS_REGION`
+`boundary connect kube -target-scope-name pie_w2_project -target-name pie-k8s-target -- get pods`
+
+### Connect to the Postgres database target
+`boundary connect postgres -target-scope-name dev_w2_project -target-name dev-db-target -dbname postgres`
+
+### Connect to the RDP target (Administrator Credentials can be retrieved through the AWS Console)
+`boundary connect rdp -exec bash -target-scope-name it_w2_project -target-name it-rdp-target -- -c "open rdp://full%20address=s={{boundary.addr}} && sleep 600"`

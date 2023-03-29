@@ -174,7 +174,7 @@ resource "aws_instance" "ssh-cert-target" {
   ami           = data.aws_ami.aws_linux_hvm2.id
   instance_type = "t3.micro"
 
-  key_name               = data.aws_key_pair.sw-ec2key.key_name
+  key_name               = data.aws_key_pair.aws_key_name.key_name
   monitoring             = true
   subnet_id              = module.boundary-eks-vpc.private_subnets[1]
   vpc_security_group_ids = [module.ssh-cert-sec-group.security_group_id]
@@ -268,7 +268,7 @@ resource "aws_instance" "rdp-target" {
   ami           = data.aws_ami.windows.id
   instance_type = "t3.micro"
 
-  key_name               = data.aws_key_pair.sw-ec2key.key_name
+  key_name               = data.aws_key_pair.aws_key_name.key_name
   monitoring             = true
   subnet_id              = module.boundary-eks-vpc.private_subnets[1]
   vpc_security_group_ids = [module.rdp-sec-group.security_group_id]

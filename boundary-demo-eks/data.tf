@@ -46,8 +46,8 @@ data "aws_ami" "windows" {
   }
 }
 
-data "aws_key_pair" "sw-ec2key" {
-  key_name = "sw-ec2key"
+data "aws_key_pair" "aws_key_name" {
+  key_name = var.aws_key_name
 }
 
 data "tfe_outputs" "boundary_demo_init" {

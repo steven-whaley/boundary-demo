@@ -87,9 +87,9 @@ resource "boundary_host_set_plugin" "pie_w2_set" {
 }
 
 # Create SSH Certificate target in PIE team us-west-2 project
-resource "boundary_target" "pie_target" {
+resource "boundary_target" "pie-ssh-cert-target" {
   type                     = "ssh"
-  name                     = "ssh-cert-target"
+  name                     = "pie-ssh-cert-target"
   description              = "Target for testing SSH Certificate Auth"
   scope_id                 = boundary_scope.pie_w2_project.id
   session_connection_limit = -1
@@ -104,9 +104,9 @@ resource "boundary_target" "pie_target" {
 }
 
 # Create generic TCP target to show SSH credential brokering
-resource "boundary_target" "pie_target_tcp" {
+resource "boundary_target" "pie-ssh-tcp-target" {
   type                     = "tcp"
-  name                     = "ssh-tcp-target"
+  name                     = "pie-ssh-tcp-target"
   description              = "Target for testing SSH tcp connections"
   scope_id                 = boundary_scope.pie_w2_project.id
   session_connection_limit = -1
@@ -160,9 +160,9 @@ resource "boundary_credential_username_password" "admin_creds" {
 }
 
 # Create K8s target in Platform Engineering Project
-resource "boundary_target" "prod_k8s" {
+resource "boundary_target" "pie-k8s-target" {
   type                     = "tcp"
-  name                     = "prod_k8s"
+  name                     = "pie-k8s-target"
   description              = "Prod K8s Cluster API"
   scope_id                 = boundary_scope.pie_w2_project.id
   session_connection_limit = -1
@@ -201,9 +201,9 @@ resource "boundary_scope" "dev_w2_project" {
 }
 
 # Create Postgres RDS Target
-resource "boundary_target" "dev_db" {
+resource "boundary_target" "dev-db-target" {
   type                     = "tcp"
-  name                     = "dev_db"
+  name                     = "dev-db-target"
   description              = "Dev main database"
   scope_id                 = boundary_scope.dev_w2_project.id
   session_connection_limit = -1
@@ -285,9 +285,9 @@ resource "boundary_host_set_plugin" "it_w2_set" {
   })
 }
 
-resource "boundary_target" "it_target_rdp" {
+resource "boundary_target" "it-rdp-target" {
   type                     = "tcp"
-  name                     = "rdp-target"
+  name                     = "it-rdp-target"
   description              = "Target for testing RDP connections"
   scope_id                 = boundary_scope.it_w2_project.id
   session_connection_limit = -1
