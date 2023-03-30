@@ -1,4 +1,6 @@
 ##### Set up AWS user for Boundary Dynamic Host Sets ####
+##### This configuration is specific to Hashicorp AWS Sandbox accounts #####
+##### If you are running this in your own AWS account with full rights to create IAM users and policies then you will want to change this ######
 
 locals {
   my_email = split("/", data.aws_caller_identity.current.arn)[2]
@@ -27,6 +29,8 @@ resource "aws_iam_user_policy" "boundary_dynamic_host_catalog" {
 resource "aws_iam_access_key" "boundary_dynamic_host_catalog" {
   user = aws_iam_user.boundary_dynamic_host_catalog.name
 }
+
+##### End of the Hashicorp Sandbox specific configuration #####
 
 ##### Platform Infrastructure Engineering Resources #####
 

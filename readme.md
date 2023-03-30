@@ -20,10 +20,11 @@ This terraform code builds an HCP Boundary enviroment that inclues connectivity 
 | EC2 Linux Instance | SSH Cert Auth Target |
 | RDS Postgres Database | Database Target |
 | EC2 Windows Instance | RDP Target |
+| EC2 Bastion Host | For Troubleshooting |
 
 ## Setup
 ### Workspaces and Variables
-This repo was build to run on Terraform Cloud/Enterprise.  It uses the tfe_outputs data source to pass parameters from the init module to the build module.  If you want to run this locally you will need to modify the code to use cross state sharing to populate those values.  Additionally, you will need to update or remote the cloud provider block to match your Terraform configuration. 
+This repo was built to run on Terraform Cloud or Enterprise.  It uses the tfe_outputs data source to pass parameters from the init module to the build module.  If you want to run this locally you will need to modify the code to use cross state sharing to populate those values.  Additionally, you will need to update or remote the cloud provider block to match your Terraform configuration. 
 
 This repo consists of two modules:
  
@@ -55,7 +56,9 @@ This repo consists of two modules:
 | AWS_ACCESS_KEY_ID | environment | The AWS Access Key used to authenticate the AWS provider |
 | AWS_SECRET_ACCESS_KEY | environment | The AWS Secret Key used to authenticate the AWS provider |
 
-**Note**: If you do not wish to use the Okta integration you can simply rename or delete the okta.tf configuration file.  All of the Okta related configuration is contained within the file and the terraform code should still build cleanly without it.  
+**Notes**
+- If you do not wish to use the Okta integration you can simply rename or delete the okta.tf configuration file.  All of the Okta related configuration is contained within the file and the terraform code should still build cleanly without it.  
+- The Dynamic Host Set setup uses an IAM role and User configuration that is specific to Hashicorp Employee AWS sandbox accounts.  If used in account without restrictions on the ability to create IAM users and policies then you will want to modify the configuration at the top of the boundary.tf config file to create the required IAM user and policy directly.  
 
 ### To Build
 Set the variables to appropriate values and update the cloud block in the providers.tf files in each module as appropriate.  

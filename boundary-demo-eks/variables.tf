@@ -5,26 +5,32 @@ variable "region" {
 }
 
 variable "boundary_password" {
+    description = "The Boundary admin user that will be set in the provider"
     type = string
 }
 
 variable "boundary_user" {
+    description = "The Boundary admin user password that will be set in the provider"
     type = string
 }
 
 variable "okta_baseurl" {
+  description = "The base url for the Okta organization used for OIDC integration. Probably okta.com"
   type = string
 }
 
 variable "okta_org_name" {
+  description = "The organization name for the Okta organization use for OIDC integration i.e. dev-32201783"
   type = string
 }
 
 variable "db_user" {
+  description = "The username to set on the Postgres database Boundary target"
   type = string
 }
 
 variable "db_password" {
+  description = "The password to set on the Postgres database Boundary target"
   type = string
 }
 

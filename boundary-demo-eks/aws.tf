@@ -1,13 +1,5 @@
 locals {
     cluster_name = "boundary-demo-cluster"
-    aws_auth_roles = [
-      {
-        rolearn = "${aws_iam_role.bastion_eks_role.arn}"
-        groups = [
-          "system:masters"
-        ]
-      }
-    ]
     cloudinit_ssh_cert_target = {
       write_files = [
         {
@@ -138,8 +130,6 @@ module "eks" {
       source_security_group_id = module.worker-sec-group.security_group_id
     }
   }
-  manage_aws_auth_configmap = true
-  aws_auth_roles = local.aws_auth_roles
   
   #EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
