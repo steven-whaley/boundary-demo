@@ -58,6 +58,7 @@ This repo consists of two modules:
 
 **Notes**
 - If you do not wish to use the Okta integration you can simply rename or delete the okta.tf configuration file.  All of the Okta related configuration is contained within the file and the terraform code should still build cleanly without it.  
+- The Okta group_ids that are mapped to the Okta app we create are currently hard coded so you will need to change those in the okta.tf file for the okta_app_group_assignment resources.  I will look at turning this into a datasource or at least variables in the future.  
 - The Dynamic Host Set setup uses an IAM role and User configuration that is specific to Hashicorp Employee AWS sandbox accounts.  If used in account without restrictions on the ability to create IAM users and policies then you will want to modify the configuration at the top of the boundary.tf config file to create the required IAM user and policy directly.  
 
 ### To Build
