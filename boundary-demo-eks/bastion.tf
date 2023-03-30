@@ -8,10 +8,10 @@ module "bastion-sec-group" {
   vpc_id      = module.boundary-eks-vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules = ["ssh-tcp"]
-  
+  ingress_rules       = ["ssh-tcp"]
+
   egress_cidr_blocks = ["0.0.0.0/0"]
-  egress_rules = ["ssh-tcp", "https-443-tcp","http-80-tcp","kubernetes-api-tcp"]
+  egress_rules       = ["ssh-tcp", "https-443-tcp", "http-80-tcp", "kubernetes-api-tcp"]
 }
 
 module "bastion" {

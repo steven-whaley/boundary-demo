@@ -8,7 +8,7 @@ resource "okta_app_oauth" "okta_app" {
   lifecycle {
     ignore_changes = [groups, response_types]
   }
-  
+
   label                     = "HCP Boundary Demo"
   type                      = "web"
   login_uri                 = local.callback_url
@@ -25,12 +25,12 @@ resource "okta_app_oauth" "okta_app" {
 
 # Assign the pie users and dev users groups to the Okta App
 resource "okta_app_group_assignment" "pie_users" {
-  app_id = okta_app_oauth.okta_app.id
+  app_id   = okta_app_oauth.okta_app.id
   group_id = "00g8szskt98pefZWy5d7"
 }
 
 resource "okta_app_group_assignment" "dev_users" {
-  app_id = okta_app_oauth.okta_app.id
+  app_id   = okta_app_oauth.okta_app.id
   group_id = "00g82ne7guXwzhoJK5d7"
 }
 

@@ -1,28 +1,28 @@
 locals {
-    cluster_name = "boundary-demo-cluster"
-    cloudinit_ssh_cert_target = {
-      write_files = [
-        {
-          content = "TrustedUserCAKeys /etc/ssh/ca-key.pub"
-          path = "/etc/ssh/sshd_config"
-          append = true
-        }
-      ]
-      runcmd = [
-        ["curl", "-o", "/etc/ssh/ca-key.pub", "-H", "X-Vault-Token: ${vault_token.read-key.client_token}", "-H", "X-Vault-Namespace: admin/${vault_namespace.pie.path_fq}", "${data.tfe_outputs.boundary_demo_init.values.vault_priv_url}/v1/${vault_mount.ssh.path}/public_key"],
-        ["chown", "1000:1000", "/etc/ssh/ca-key.pub"],
-        ["chmod", "644", "/etc/ssh/ca-key.pub"],
-        ["systemctl", "restart", "sshd"]
-      ]
-    }
+  cluster_name = "boundary-demo-cluster"
+  cloudinit_ssh_cert_target = {
+    write_files = [
+      {
+        content = "TrustedUserCAKeys /etc/ssh/ca-key.pub"
+        path    = "/etc/ssh/sshd_config"
+        append  = true
+      }
+    ]
+    runcmd = [
+      ["curl", "-o", "/etc/ssh/ca-key.pub", "-H", "X-Vault-Token: ${vault_token.read-key.client_token}", "-H", "X-Vault-Namespace: admin/${vault_namespace.pie.path_fq}", "${data.tfe_outputs.boundary_demo_init.values.vault_priv_url}/v1/${vault_mount.ssh.path}/public_key"],
+      ["chown", "1000:1000", "/etc/ssh/ca-key.pub"],
+      ["chmod", "644", "/etc/ssh/ca-key.pub"],
+      ["systemctl", "restart", "sshd"]
+    ]
+  }
 }
 
 data "cloudinit_config" "ssh_cert_target" {
-  gzip = false
+  gzip          = false
   base64_encode = true
   part {
     content_type = "text/cloud-config"
-    content = yamlencode(local.cloudinit_ssh_cert_target)
+    content      = yamlencode(local.cloudinit_ssh_cert_target)
   }
 }
 
@@ -97,8 +97,8 @@ resource "aws_route" "vault" {
   for_each = {
     for idx, rt_id in module.boundary-eks-vpc.private_route_table_ids : idx => rt_id
   }
-  route_table_id = each.value
-  destination_cidr_block = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
+  route_table_id            = each.value
+  destination_cidr_block    = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
   vpc_peering_connection_id = hcp_aws_network_peering.vault.provider_peering_id
 }
 
@@ -119,7 +119,7 @@ module "eks" {
       most_recent = true
     }
   }
-  
+
   cluster_security_group_additional_rules = {
     api_ingress_from_worker = {
       description              = "API Ingress from Boundary Worker"
@@ -130,7 +130,7 @@ module "eks" {
       source_security_group_id = module.worker-sec-group.security_group_id
     }
   }
-  
+
   #EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     disk_size      = 50
@@ -164,11 +164,11 @@ resource "aws_instance" "ssh-cert-target" {
   ami           = data.aws_ami.aws_linux_hvm2.id
   instance_type = "t3.micro"
 
-  key_name               = data.aws_key_pair.aws_key_name.key_name
-  monitoring             = true
-  subnet_id              = module.boundary-eks-vpc.private_subnets[1]
-  vpc_security_group_ids = [module.ssh-cert-sec-group.security_group_id]
-  user_data_base64       = data.cloudinit_config.ssh_cert_target.rendered
+  key_name                    = data.aws_key_pair.aws_key_name.key_name
+  monitoring                  = true
+  subnet_id                   = module.boundary-eks-vpc.private_subnets[1]
+  vpc_security_group_ids      = [module.ssh-cert-sec-group.security_group_id]
+  user_data_base64            = data.cloudinit_config.ssh_cert_target.rendered
   user_data_replace_on_change = true
 
   tags = {
@@ -185,26 +185,26 @@ module "ssh-cert-sec-group" {
   name        = "ssh-cert-sec-group"
   description = "Allow SSH access and from bastion"
   vpc_id      = module.boundary-eks-vpc.vpc_id
-  
+
   ingress_with_source_security_group_id = [
     {
-      rule = "ssh-tcp"
+      rule                     = "ssh-tcp"
       source_security_group_id = module.bastion-sec-group.security_group_id
     },
     {
-      rule = "ssh-tcp"
+      rule                     = "ssh-tcp"
       source_security_group_id = module.worker-sec-group.security_group_id
     },
   ]
 
   egress_cidr_blocks = ["0.0.0.0/0"]
-  egress_rules = ["https-443-tcp","http-80-tcp"]
+  egress_rules       = ["https-443-tcp", "http-80-tcp"]
 
   egress_with_cidr_blocks = [
     {
-      from_port = 8200
-      to_port = 8200
-      protocol = "tcp"
+      from_port   = 8200
+      to_port     = 8200
+      protocol    = "tcp"
       cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
       description = "Allow Server to communicate with HCP Vault"
     }
@@ -213,20 +213,20 @@ module "ssh-cert-sec-group" {
 
 #RDS Database Target
 resource "aws_db_subnet_group" "postgres" {
-  name = "boundary-demo-group"
+  name       = "boundary-demo-group"
   subnet_ids = module.boundary-eks-vpc.private_subnets
 }
 
 resource "aws_db_instance" "postgres" {
-  allocated_storage    = 10
-  db_name              = "postgres"
-  engine               = "postgres"
-  engine_version       = "12.7"
-  instance_class       = "db.t3.micro"
-  username             = var.db_user
-  password             = var.db_password
-  db_subnet_group_name = aws_db_subnet_group.postgres.name
-  skip_final_snapshot  = true  
+  allocated_storage      = 10
+  db_name                = "postgres"
+  engine                 = "postgres"
+  engine_version         = "12.7"
+  instance_class         = "db.t3.micro"
+  username               = var.db_user
+  password               = var.db_password
+  db_subnet_group_name   = aws_db_subnet_group.postgres.name
+  skip_final_snapshot    = true
   vpc_security_group_ids = [module.rds-sec-group.security_group_id]
 }
 
@@ -238,16 +238,16 @@ module "rds-sec-group" {
   name        = "rds-sec-group"
   description = "Allow Access from Boundary Worker to Database endpoint"
   vpc_id      = module.boundary-eks-vpc.vpc_id
-  
+
   ingress_with_source_security_group_id = [
     {
-      rule = "postgresql-tcp"
+      rule                     = "postgresql-tcp"
       source_security_group_id = module.worker-sec-group.security_group_id
     },
   ]
   ingress_with_cidr_blocks = [
     {
-      rule = "postgresql-tcp"
+      rule        = "postgresql-tcp"
       cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
     }
   ]
@@ -276,10 +276,10 @@ module "rdp-sec-group" {
   name        = "rdp-sec-group"
   description = "Allow Access from Boundary Worker to RDP target"
   vpc_id      = module.boundary-eks-vpc.vpc_id
-  
+
   ingress_with_source_security_group_id = [
     {
-      rule = "rdp-tcp"
+      rule                     = "rdp-tcp"
       source_security_group_id = module.worker-sec-group.security_group_id
     },
   ]

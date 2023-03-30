@@ -56,7 +56,7 @@ data "tfe_outputs" "boundary_demo_init" {
 }
 
 data "aws_arn" "peer_vpc" {
-  arn=module.boundary-eks-vpc.vpc_arn
+  arn = module.boundary-eks-vpc.vpc_arn
 }
 
 ##### These data sources are used to create the IAM user for Dynamic Host Sets.  They may not be necessary if building outside of Hashicorp SE Sandbox accounts #####

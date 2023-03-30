@@ -5,12 +5,12 @@ terraform {
       source  = "hashicorp/aws"
     }
     hcp = {
-      source = "hashicorp/hcp"
+      source  = "hashicorp/hcp"
       version = "~> 0.52.0"
     }
     kubernetes = {
       version = ">= 2.0.0"
-      source = "hashicorp/kubernetes"  
+      source  = "hashicorp/kubernetes"
     }
     boundary = {
       source  = "hashicorp/boundary"
@@ -60,8 +60,8 @@ provider "okta" {
 }
 
 provider "vault" {
-  address = data.tfe_outputs.boundary_demo_init.values.vault_pub_url
-  token   = data.tfe_outputs.boundary_demo_init.values.vault_token
+  address   = data.tfe_outputs.boundary_demo_init.values.vault_pub_url
+  token     = data.tfe_outputs.boundary_demo_init.values.vault_token
   namespace = "admin"
 }
 
