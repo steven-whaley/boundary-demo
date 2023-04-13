@@ -7,9 +7,9 @@ terraform {
     }
   }
   cloud {
-    organization = "swhashi"
+    organization = "var.tfc_org"
     workspaces {
-      name = "boundary-demo-init"
+      name = "var.workspace_name"
     }
   }
 }
