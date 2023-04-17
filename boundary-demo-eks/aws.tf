@@ -222,6 +222,8 @@ resource "aws_db_instance" "postgres" {
   db_name                = "postgres"
   engine                 = "postgres"
   engine_version         = "12.7"
+  allow_major_version_upgrade = false
+  auto_minor_version_upgrade = false
   instance_class         = "db.t3.micro"
   username               = var.db_user
   password               = var.db_password
