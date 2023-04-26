@@ -5,6 +5,9 @@ resource "vault_namespace" "pie" {
 resource "vault_namespace" "dev" {
   path = "dev"
 }
+resource "vault_namespace" "it" {
+  path = "it"
+}
 
 ### Create Policies for Boundary Credential Store
 #Create Policy for Boundary to manage it's own token to Vault
@@ -72,6 +75,12 @@ resource "vault_policy" "boundary-token-policy-pie" {
   policy    = data.vault_policy_document.boundary-token-policy.hcl
 }
 
+resource "vault_policy" "boundary-token-policy-it" {
+  namespace = vault_namespace.it.path_fq
+  name      = "boundary-token"
+  policy    = data.vault_policy_document.boundary-token-policy.hcl
+}
+
 resource "vault_policy" "ssh-public-key-policy" {
   namespace = vault_namespace.pie.path_fq
   name      = "ssh-public-key-policy"
@@ -106,6 +115,14 @@ resource "vault_token_auth_backend_role" "boundary-token-role-pie" {
 
 }
 
+resource "vault_token_auth_backend_role" "boundary-token-role-it" {
+  namespace        = vault_namespace.it.path_fq
+  role_name        = "boundary-controller-role-it"
+  allowed_policies = [vault_policy.boundary-token-policy-it.name]
+  orphan           = true
+
+}
+
 resource "vault_token" "boundary-token-pie" {
   namespace = vault_namespace.pie.path_fq
   role_name = vault_token_auth_backend_role.boundary-token-role-pie.role_name
@@ -120,6 +137,16 @@ resource "vault_token" "boundary-token-dev" {
   namespace = vault_namespace.dev.path_fq
   role_name = vault_token_auth_backend_role.boundary-token-role-dev.role_name
   policies  = [vault_policy.boundary-token-policy-dev.name, vault_policy.db-policy.name]
+  no_parent = true
+  renewable = true
+  ttl       = "24h"
+  period    = "20m"
+}
+
+resource "vault_token" "boundary-token-it" {
+  namespace = vault_namespace.it.path_fq
+  role_name = vault_token_auth_backend_role.boundary-token-role-it.role_name
+  policies  = [vault_policy.boundary-token-policy-it.name]
   no_parent = true
   renewable = true
   ttl       = "24h"
