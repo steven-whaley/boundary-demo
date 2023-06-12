@@ -46,7 +46,7 @@ This repo consists of two modules:
 | boundary_user | terraform | The Boundary admin user that will be set in the provider | 
 | boundary_password | terraform | The Boundary admin user password that will be set in the provider |
 | db_user | terraform | The username to set on the Postgres database Boundary target |
-| db_user | terraform | The password to set on the Postgres database Boundary target |
+| db_password | terraform | The password to set on the Postgres database Boundary target |
 | okta_baseurl | terraform | The base url for the Okta organization used for OIDC integration.  Probably okta.com |
 | okta_org_name | terraform | The organization name for the Okta organization use for OIDC integration i.e. dev-32201783 |
 | HCP_CLIENT_ID | environment | The Client ID used to authenticate the HCP provider |
