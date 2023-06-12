@@ -6,25 +6,25 @@ terraform {
     }
     hcp = {
       source  = "hashicorp/hcp"
-      version = "~> 0.52.0"
+      version = "0.52.0"
     }
     kubernetes = {
-      version = ">= 2.0.0"
+      version = "2.20.0"
       source  = "hashicorp/kubernetes"
     }
     boundary = {
       source  = "hashicorp/boundary"
-      version = "~>1.1.0"
+      version = "1.1.7"
     }
     okta = {
       source  = "okta/okta"
-      version = "~> 3.40"
+      version = "3.46.0"
     }
     tfe = {
-      version = "~> 0.42.0"
+      version = "0.42.0"
     }
     vault = {
-      version = "~> 3.14.0"
+      version = "3.14.0"
     }
   }
   cloud {
