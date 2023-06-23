@@ -51,8 +51,8 @@ data "aws_key_pair" "aws_key_name" {
 }
 
 data "tfe_outputs" "boundary_demo_init" {
-  organization = "swhashi"
-  workspace    = "boundary-demo-init"
+  organization = var.tfc_org
+  workspace    = var.init_workspace_name
 }
 
 data "aws_arn" "peer_vpc" {
