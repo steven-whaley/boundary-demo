@@ -36,21 +36,25 @@ This repo consists of two modules:
 | --------- | -------- | -------- |
 | boundary_user | terraform | The user name you would like to use for the default admin user created in the HCP Boundary Cluster |
 | boundary_password | terraform | The password you would like to use for the default admin user created in the HCP Boundary Cluster |
-| HCP_CLIENT_ID | environment | The Client ID used to authenticate to HCP |
-| HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate to HCP |
+| hcp_client_id | terraform | The Client ID used to authenticate to HCP |
+| hcp_client_secret | terraform | The Secret Key used to authenticate to HCP |
+| tfc_org | terraform | Terraform Cloud Organization name |
+| workspace_name | terraform | Terraform Cloud Workspace name (i.e. boundary-demo-init)|
 
 #### boundary-demo-eks
 | Variable | Type | Purpose |
 | --------- | -------- | -------- |
-| region | terraform | The AWS region to deploy worker and targets into |
+| region | terraform | The AWS region to deploy worker and targets into (us-west-2 used in the demo-init)|
+| tfc_org | terraform | Terraform Cloud Organization name |
+| init_workspace_name | terraform | Terraform Cloud Workspace name used for the initial resources (i.e. boundary-demo-init)|
 | boundary_user | terraform | The Boundary admin user that will be set in the provider | 
 | boundary_password | terraform | The Boundary admin user password that will be set in the provider |
 | db_user | terraform | The username to set on the Postgres database Boundary target |
 | db_password | terraform | The password to set on the Postgres database Boundary target |
 | okta_baseurl | terraform | The base url for the Okta organization used for OIDC integration.  Probably okta.com |
 | okta_org_name | terraform | The organization name for the Okta organization use for OIDC integration i.e. dev-32201783 |
-| HCP_CLIENT_ID | environment | The Client ID used to authenticate the HCP provider |
-| HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate the HCP provider |
+| hcp_client_id | terraform | The Client ID used to authenticate to HCP |
+| hcp_client_secret | terraform | The Secret Key used to authenticate to HCP |
 | OKTA_API_TOKEN | environment | The token used to authenticate the Okta provider |
 | TFE_TOKEN | environment | The token used to authenticate the Terraform provider to use the tfe_outputs data source |
 | AWS_ACCESS_KEY_ID | environment | The AWS Access Key used to authenticate the AWS provider |
