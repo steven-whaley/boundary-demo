@@ -9,11 +9,6 @@ variable "hcp_client_secret" {
   sensitive   = true
 }
 
-variable "tfc_org" {
-  description = "Terraform Cloud Organization name."
-  type = string
-}
-
 variable "workspace_name" {
   description = "Terraform Cloud Workspace name."
   type = string
