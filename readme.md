@@ -36,9 +36,8 @@ This repo consists of two modules:
 | --------- | -------- | -------- |
 | boundary_user | terraform | The user name you would like to use for the default admin user created in the HCP Boundary Cluster |
 | boundary_password | terraform | The password you would like to use for the default admin user created in the HCP Boundary Cluster |
-| hcp_client_id | terraform | The Client ID used to authenticate to HCP |
-| hcp_client_secret | terraform | The Secret Key used to authenticate to HCP |
-| tfc_org | terraform | Terraform Cloud Organization name |
+| HCP_CLIENT_ID | environment | The Client ID used to authenticate to HCP |
+| HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate to HCP |
 | workspace_name | terraform | Terraform Cloud Workspace name (i.e. boundary-demo-init)|
 
 #### boundary-demo-eks
@@ -53,8 +52,8 @@ This repo consists of two modules:
 | db_password | terraform | The password to set on the Postgres database Boundary target |
 | okta_baseurl | terraform | The base url for the Okta organization used for OIDC integration.  Probably okta.com |
 | okta_org_name | terraform | The organization name for the Okta organization use for OIDC integration i.e. dev-32201783 |
-| hcp_client_id | terraform | The Client ID used to authenticate to HCP |
-| hcp_client_secret | terraform | The Secret Key used to authenticate to HCP |
+| HCP_CLIENT_ID | environment | The Client ID used to authenticate to HCP |
+| HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate to HCP |
 | OKTA_API_TOKEN | environment | The token used to authenticate the Okta provider |
 | TFE_TOKEN | environment | The token used to authenticate the Terraform provider to use the tfe_outputs data source |
 | AWS_ACCESS_KEY_ID | environment | The AWS Access Key used to authenticate the AWS provider |
@@ -62,7 +61,7 @@ This repo consists of two modules:
 
 **Notes**
 - If you do not wish to use the Okta integration you can simply rename or delete the okta.tf configuration file.  All of the Okta related configuration is contained within the file and the terraform code should still build cleanly without it.  
-- The Okta group_ids that are mapped to the Okta app we create are currently hard coded so you will need to change those in the okta.tf file for the okta_app_group_assignment resources.  I will look at turning this into a datasource or at least variables in the future.  
+- The Okta group_ids that are mapped to the Okta app we create are currently will be pulled from newly created resources. If the group names "pie_users", "dev_users", or "it_users" already exist as Okta groups creating those resources and pulling the group_ids will fail.  
 - The Dynamic Host Set setup uses an IAM role and User configuration that is specific to Hashicorp Employee AWS sandbox accounts.  If used in account without restrictions on the ability to create IAM users and policies then you will want to modify the configuration at the top of the boundary.tf config file to create the required IAM user and policy directly.  
 
 ### To Build
