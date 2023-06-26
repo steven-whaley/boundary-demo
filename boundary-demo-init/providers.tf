@@ -7,14 +7,11 @@ terraform {
     }
   }
   cloud {
-    organization = var.tfc_org
+    organization = "swhashi"
     workspaces {
-      name = var.workspace_name
+      name = "boundary-demo-init"
     }
   }
 }
 
-provider "hcp" {
-  client_id     = var.hcp_client_id
-  client_secret = var.hcp_client_secret
-}
+provider "hcp" {}
