@@ -18,10 +18,9 @@ resource "aws_iam_user" "boundary_dynamic_host_catalog" {
   force_destroy        = true
 }
 
-resource "aws_iam_user_policy" "boundary_dynamic_host_catalog" {
+resource "aws_iam_user_policy_attachment" "boundary_dynamic_host_catalog" {
   user   = aws_iam_user.boundary_dynamic_host_catalog.name
-  policy = data.aws_iam_policy.demo_user_permissions_boundary.policy
-  name   = "DemoUserInlinePolicy"
+  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
 }
 
 # Generate some secrets to pass in to the Boundary configuration.
