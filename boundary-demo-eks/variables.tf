@@ -4,6 +4,16 @@ variable "region" {
   default     = "us-west-2"
 }
 
+variable "tfc_org" {
+  description = "Terraform Cloud Organization name."
+  type = string
+}
+
+variable "init_workspace_name" {
+  description = "Terraform Cloud Workspace name used for the initial resources i.e- boundary-demo-init."
+  type = string
+}
+
 variable "boundary_password" {
   description = "The Boundary admin user that will be set in the provider"
   type        = string
