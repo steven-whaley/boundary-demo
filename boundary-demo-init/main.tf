@@ -3,6 +3,7 @@ resource "hcp_boundary_cluster" "boundary-demo" {
   cluster_id = "demo-cluster"
   username   = var.boundary_user
   password   = var.boundary_password
+  tier = "PLUS"
 }
 
 resource "hcp_hvn" "boundary-vault-hvn" {

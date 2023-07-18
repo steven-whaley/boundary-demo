@@ -14,8 +14,9 @@ locals {
       address = "0.0.0.0"
     }
     worker {
-      auth_storage_path = "/etc/boundary-worker-data"
+      auth_storage_path = "/boundary/boundary-worker-${random_uuid.worker_uuid.result}"
       controller_generated_activation_token = "${boundary_worker.hcp_pki_worker.controller_generated_activation_token}"
+      recording_storage_path="/boundary/storage/"
       tags {
         type = "public_instance"
         cloud = "aws"
@@ -37,7 +38,7 @@ locals {
       ["yum", "update", "-y"],
       ["yum", "install", "-y", "docker"],
       ["systemctl", "start", "docker"],
-      ["docker", "run", "-p", "9202:9202", "-v", "/run/boundary:/boundary/", "hashicorp/boundary-worker-hcp", "boundary-worker", "server", "-config", "/boundary/config.hcl"]
+      ["docker", "run", "-p", "9202:9202", "-v", "/run/boundary:/boundary/", "hashicorp/boundary-enterprise", "boundary", "server", "-config", "/boundary/config.hcl"]
     ]
   }
 }
