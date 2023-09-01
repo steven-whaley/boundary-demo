@@ -1,4 +1,5 @@
 resource "kubernetes_deployment" "nginx" {
+  depends_on = [module.eks, module.boundary-eks-vpc]
   metadata {
     name = "nginx"
     labels = {
