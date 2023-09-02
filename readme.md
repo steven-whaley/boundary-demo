@@ -26,7 +26,7 @@ This terraform code builds an HCP Boundary enviroment that inclues connectivity 
 ### Workspaces and Variables
 This repo was built to run on Terraform Cloud or Enterprise.  It uses the tfe_outputs data source to pass parameters from the init module to the build module.  If you want to run this locally you will need to modify the code to use cross state sharing to populate those values.  Additionally, you will need to update or remote the cloud provider block to match your Terraform configuration. 
 
-This repo consists of two modules:
+This repo consists of two modules that need to be run in the below order:
  
 **boundary-demo-init** - This module builds an HCP Boundary Cluster and HCP Vault Cluster along with an associated HVN for the Vault Cluster.  
 **boundary-demo-eks** - This module does the bulk of the work, building out all of the Boundary and Vault configuration as well as the AWS components used as workers and targets.
@@ -49,6 +49,7 @@ This repo consists of two modules:
 | db_password | terraform | The password to set on the Postgres database Boundary target |
 | okta_baseurl | terraform | The base url for the Okta organization used for OIDC integration.  Probably okta.com |
 | okta_org_name | terraform | The organization name for the Okta organization use for OIDC integration i.e. dev-32201783 |
+| okta_user_password | terraform | The password to set on the PIE, DEV and IT users created in Okta |
 | HCP_CLIENT_ID | environment | The Client ID used to authenticate the HCP provider |
 | HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate the HCP provider |
 | OKTA_API_TOKEN | environment | The token used to authenticate the Okta provider |
@@ -57,8 +58,7 @@ This repo consists of two modules:
 | AWS_SECRET_ACCESS_KEY | environment | The AWS Secret Key used to authenticate the AWS provider |
 
 **Notes**
-- If you do not wish to use the Okta integration you can simply rename or delete the okta.tf configuration file.  All of the Okta related configuration is contained within the file and the terraform code should still build cleanly without it.  
-- The Okta group_ids that are mapped to the Okta app we create are currently hard coded so you will need to change those in the okta.tf file for the okta_app_group_assignment resources.  I will look at turning this into a datasource or at least variables in the future.  
+- If you do not wish to use the Okta integration you can delete or comment out the okta.tf file.  
 - The Dynamic Host Set setup uses an IAM role and User configuration that is specific to Hashicorp Employee AWS sandbox accounts.  If used in account without restrictions on the ability to create IAM users and policies then you will want to modify the configuration at the top of the boundary.tf config file to create the required IAM user and policy directly.  
 
 ### To Build
@@ -77,7 +77,11 @@ Once the boundary-demo-init run has completed init and apply the boundary-demo-e
 
 **Notes**: 
 - The terraform code is generally stable and completes in a single run but if you experience issues a second run is usually enough to correct them.  
-- If for some reason you need to rebuild the EC2 Boundary worker you should also taint the boundary_worker resource as rebuilding the EC2 instance without re-creating the worker in Boundary and getting a new auth key will cause the worker to fail to connect to the Boundary control plane.  
+- If the self-managed worker does not come up properly you can rebuild it by tainting the boundary_worker and aws_instance resources in the created in the worker.tf file and then rerunning the terraform apply on the boundary-demo-eks workspace.  
+
+`terraform taint boundary_worker.hcp_pki_worker`
+
+`terraform taint aws_instance.worker`
 
 ## Connecting to Targets
 If you are using the Okta integration then:

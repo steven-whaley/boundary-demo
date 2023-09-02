@@ -38,3 +38,8 @@ variable "aws_key_name" {
   type        = string
   description = "The name of the key pair in your AWS account that you would like to add to the EC2 instances that are created"
 }
+
+variable "okta_user_password" {
+  type = string
+  description = "The password that will be set on the PIE, DEV, and IT Okta user accounts"
+}

@@ -17,8 +17,3 @@ output "worker_ip_address" {
   description = "Boundary worker private IP"
   value       = aws_instance.worker.private_ip
 }
-
-output "oidc_auth_method" {
-  description = "OIDC Auth Method ID"
-  value       = boundary_auth_method_oidc.oidc_auth_method.id
-}
