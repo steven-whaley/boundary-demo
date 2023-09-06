@@ -36,13 +36,15 @@ This repo consists of two modules that need to be run in the below order:
 | --------- | -------- | -------- |
 | boundary_user | terraform | The user name you would like to use for the default admin user created in the HCP Boundary Cluster |
 | boundary_password | terraform | The password you would like to use for the default admin user created in the HCP Boundary Cluster |
+| region | terraform | The AWS region into which to deploy the Hashicorp Virtual Network |
 | HCP_CLIENT_ID | environment | The Client ID used to authenticate to HCP |
 | HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate to HCP |
+
 
 #### boundary-demo-eks
 | Variable | Type | Purpose |
 | --------- | -------- | -------- |
-| region | terraform | The AWS region to deploy worker and targets into |
+| region | terraform | The AWS region into which to deploy the worker and targets |
 | boundary_user | terraform | The Boundary admin user that will be set in the provider | 
 | boundary_password | terraform | The Boundary admin user password that will be set in the provider |
 | db_user | terraform | The username to set on the Postgres database Boundary target |
@@ -90,20 +92,33 @@ If you are using the Okta integration then:
 - Members of the it_users group in Okta have permissions to connect to the targets in the it_w2_project scope
 
 ### Connect to the SSH certificate target
-`boundary connect ssh -target-scope-name pie_w2_project -target-name pie-ssh-cert-target`
+`boundary connect ssh -target-scope-name pie_aws_project -target-name pie-ssh-cert-target`
 
 ### Connecting to SSH TCP taget with brokered credentials for some admin user configured on the server
-`boundary connect ssh -target-scope-name pie_w2_project -target-name pie-ssh-tcp-target -- -l ec2-user`
+You can use the private key that matches the public key supplied in the public_key terraform variable to connect to the SSH target by passing the -i flag to ssh
+
+`boundary connect ssh -target-scope-name pie_aws_project -target-name pie-ssh-tcp-target -- -l ec2-user -i <path/to/private_key>`
 
 ### Connect to the K8s target
 You will still need credentials to connect to the EKS cluster via K8s, which you can get via the AWS CLI.  Be sure to set the appropriate region where you deployed your AWS resources.
 
 `aws eks update-kubeconfig --name boundary-demo-cluster --region $AWS_REGION`
 
-`boundary connect kube -target-scope-name pie_w2_project -target-name pie-k8s-target -- get pods`
+`boundary connect kube -target-scope-name pie_aws_project -target-name pie-k8s-target -- get pods`
 
 ### Connect to the Postgres database target
-`boundary connect postgres -target-scope-name dev_w2_project -target-name dev-db-target -dbname postgres`
+`boundary connect postgres -target-scope-name dev_aws_project -target-name dev-db-target -dbname postgres`
 
-### Connect to the RDP target (Administrator Credentials can be retrieved through the AWS Console)
-`boundary connect rdp -exec bash -target-scope-name it_w2_project -target-name it-rdp-target -- -c "open rdp://full%20address=s={{boundary.addr}} && sleep 600"`
+### Connect to the RDP target
+**Username:** Administrator   
+**Password:** The value of the *admin_pass* terraform variable in the boundary-demo-eks workspace
+
+**On Windows**
+
+`boundary connect rdp -target-scope-name it_aws_project -target-name it-rdp-target `
+
+**On Mac**
+
+The Mac RDP client requires using -exec to open it and the sleep command at the end controls how long before the session closes.  This is a limitation specifically on the RDP client on newer versions of OSX and has nothing to do with Boundary specifically.   
+
+`boundary connect rdp -exec bash -target-scope-name it_aws_project -target-name it-rdp-target -- -c "open rdp://full%20address=s={{boundary.addr}} && sleep 600"`

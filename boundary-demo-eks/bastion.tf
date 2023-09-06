@@ -23,7 +23,7 @@ module "bastion" {
   ami           = data.aws_ami.aws_linux_hvm2.id
   instance_type = "t3.micro"
 
-  key_name               = data.aws_key_pair.aws_key_name.key_name
+  key_name               = aws_key_pair.boundary_ec2_keys.key_name
   monitoring             = true
   subnet_id              = module.boundary-eks-vpc.public_subnets[0]
   vpc_security_group_ids = [module.bastion-sec-group.security_group_id]

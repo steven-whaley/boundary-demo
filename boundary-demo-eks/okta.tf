@@ -5,10 +5,6 @@ locals {
 
 # Create the Okta OAuth App for Boundary
 resource "okta_app_oauth" "okta_app" {
-  lifecycle {
-    ignore_changes = [groups, response_types]
-  }
-
   label                     = "HCP Boundary Demo"
   type                      = "web"
   login_uri                 = local.callback_url
@@ -129,7 +125,7 @@ resource "boundary_role" "okta_dev_role" {
     "id=*;type=host-catalog;actions=list,read",
   ]
   scope_id       = boundary_scope.dev_org.id
-  grant_scope_id = boundary_scope.dev_w2_project.id
+  grant_scope_id = boundary_scope.dev_aws_project.id
 }
 
 # Create the managed group in boundary for PIE users
@@ -151,7 +147,7 @@ resource "boundary_role" "okta_pie_role" {
     "id=*;type=host-catalog;actions=list,read",
   ]
   scope_id       = boundary_scope.pie_org.id
-  grant_scope_id = boundary_scope.pie_w2_project.id
+  grant_scope_id = boundary_scope.pie_aws_project.id
 }
 
 # Create the managed group in boundary for IT users
@@ -173,5 +169,5 @@ resource "boundary_role" "okta_it_role" {
     "id=*;type=host-catalog;actions=list,read",
   ]
   scope_id       = boundary_scope.it_org.id
-  grant_scope_id = boundary_scope.it_w2_project.id
+  grant_scope_id = boundary_scope.it_aws_project.id
 }

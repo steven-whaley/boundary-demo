@@ -26,6 +26,12 @@ data "cloudinit_config" "ssh_cert_target" {
   }
 }
 
+# Create EC2 key pair using public key provided in variable
+resource "aws_key_pair" "boundary_ec2_keys" {
+  key_name   = "boundary-demo-ec2-key"
+  public_key = var.public_key
+}
+
 # Create VPC for AWS resources
 module "boundary-eks-vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -164,7 +170,7 @@ resource "aws_instance" "ssh-cert-target" {
   ami           = data.aws_ami.aws_linux_hvm2.id
   instance_type = "t3.micro"
 
-  key_name                    = data.aws_key_pair.aws_key_name.key_name
+  key_name                    = aws_key_pair.boundary_ec2_keys.key_name
   monitoring                  = true
   subnet_id                   = module.boundary-eks-vpc.private_subnets[1]
   vpc_security_group_ids      = [module.ssh-cert-sec-group.security_group_id]
@@ -260,10 +266,11 @@ resource "aws_instance" "rdp-target" {
   ami           = data.aws_ami.windows.id
   instance_type = "t3.micro"
 
-  key_name               = data.aws_key_pair.aws_key_name.key_name
+  key_name               = aws_key_pair.boundary_ec2_keys.key_name
   monitoring             = true
   subnet_id              = module.boundary-eks-vpc.private_subnets[1]
   vpc_security_group_ids = [module.rdp-sec-group.security_group_id]
+  user_data = templatefile("./template_files/windows-target.tftpl", { admin_pass = var.admin_pass })
 
   tags = {
     Team = "IT"

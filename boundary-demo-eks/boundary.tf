@@ -42,19 +42,19 @@ resource "boundary_scope" "pie_org" {
   auto_create_admin_role   = true
 }
 
-# Create Project for PIE us-west-2 resources
-resource "boundary_scope" "pie_w2_project" {
-  name                     = "pie_w2_project"
-  description              = "PIE AWS US-West-2 Project"
+# Create Project for PIE AWS resources
+resource "boundary_scope" "pie_aws_project" {
+  name                     = "pie_aws_project"
+  description              = "PIE AWS Project"
   scope_id                 = boundary_scope.pie_org.id
   auto_create_admin_role   = true
   auto_create_default_role = true
 }
 
-# Create Project for PIE us-east-2 resources
-resource "boundary_scope" "pie_e2_project" {
-  name                     = "pie_e2_project"
-  description              = "PIE AWS US-East-2 Project"
+# Create Project for PIE Azure Resources
+resource "boundary_scope" "pie_azure_project" {
+  name                     = "pie_azure_project"
+  description              = "PIE Azure Project"
   scope_id                 = boundary_scope.pie_org.id
   auto_create_admin_role   = true
   auto_create_default_role = true
@@ -64,13 +64,13 @@ resource "boundary_scope" "pie_e2_project" {
 resource "boundary_host_catalog_plugin" "pie_dynamic_catalog" {
   depends_on = [time_sleep.wait_60_sec]
 
-  name        = "pie_w2_catalog"
-  description = "PIE AWS us-west-2 Catalog"
-  scope_id    = boundary_scope.pie_w2_project.id
+  name        = "pie_aws_${var.region}_catalog"
+  description = "PIE AWS ${var.region} Catalog"
+  scope_id    = boundary_scope.pie_aws_project.id
   plugin_name = "aws"
 
   attributes_json = jsonencode({
-    "region"                      = "us-west-2",
+    "region"                      = var.region,
     "disable_credential_rotation" = true
   })
 
@@ -81,29 +81,29 @@ resource "boundary_host_catalog_plugin" "pie_dynamic_catalog" {
 }
 
 # Create the host set for PIE team from dynamic host catalog
-resource "boundary_host_set_plugin" "pie_w2_set" {
-  name            = "PIE hosts in us-west-2"
+resource "boundary_host_set_plugin" "pie_set" {
+  name            = "PIE hosts in AWS"
   host_catalog_id = boundary_host_catalog_plugin.pie_dynamic_catalog.id
   attributes_json = jsonencode({
     "filters" = "tag:Team=PIE",
   })
 }
 
-# Create SSH Certificate target in PIE team us-west-2 project
+# Create SSH Certificate target in PIE team AWS project
 resource "boundary_target" "pie-ssh-cert-target" {
   type                     = "ssh"
   name                     = "pie-ssh-cert-target"
   description              = "Target for testing SSH Certificate Auth"
-  scope_id                 = boundary_scope.pie_w2_project.id
+  scope_id                 = boundary_scope.pie_aws_project.id
   session_connection_limit = -1
   default_port             = 22
   host_source_ids = [
-    boundary_host_set_plugin.pie_w2_set.id
+    boundary_host_set_plugin.pie_set.id
   ]
   injected_application_credential_source_ids = [
     boundary_credential_library_vault_ssh_certificate.ssh_cert.id
   ]
-  egress_worker_filter = "\"us-west-2\" in \"/tags/region\""
+  egress_worker_filter = "\"${var.region}\" in \"/tags/region\""
 }
 
 # Create generic TCP target to show SSH credential brokering
@@ -111,16 +111,16 @@ resource "boundary_target" "pie-ssh-tcp-target" {
   type                     = "tcp"
   name                     = "pie-ssh-tcp-target"
   description              = "Target for testing SSH tcp connections"
-  scope_id                 = boundary_scope.pie_w2_project.id
+  scope_id                 = boundary_scope.pie_aws_project.id
   session_connection_limit = -1
   default_port             = 22
   host_source_ids = [
-    boundary_host_set_plugin.pie_w2_set.id
+    boundary_host_set_plugin.pie_set.id
   ]
   brokered_credential_source_ids = [
     boundary_credential_username_password.admin_creds.id
   ]
-  egress_worker_filter = "\"us-west-2\" in \"/tags/region\""
+  egress_worker_filter = "\"${var.region}\" in \"/tags/region\""
 }
 
 # Create PIE Vault Credential store
@@ -130,7 +130,7 @@ resource "boundary_credential_store_vault" "pie_vault" {
   namespace   = "admin/${vault_namespace.pie.path_fq}"
   address     = data.tfe_outputs.boundary_demo_init.values.vault_pub_url
   token       = vault_token.boundary-token-pie.client_token
-  scope_id    = boundary_scope.pie_w2_project.id
+  scope_id    = boundary_scope.pie_aws_project.id
 }
 
 # Create SSH Cert credential library
@@ -151,7 +151,7 @@ resource "boundary_credential_library_vault_ssh_certificate" "ssh_cert" {
 resource "boundary_credential_store_static" "pie_static_store" {
   name        = "pie_static_store"
   description = "Static credential store for Platform Engineering Team"
-  scope_id    = boundary_scope.pie_w2_project.id
+  scope_id    = boundary_scope.pie_aws_project.id
 }
 
 resource "boundary_credential_username_password" "admin_creds" {
@@ -167,11 +167,11 @@ resource "boundary_target" "pie-k8s-target" {
   type                     = "tcp"
   name                     = "pie-k8s-target"
   description              = "Prod K8s Cluster API"
-  scope_id                 = boundary_scope.pie_w2_project.id
+  scope_id                 = boundary_scope.pie_aws_project.id
   session_connection_limit = -1
   default_port             = 443
   address                  = split("//", module.eks.cluster_endpoint)[1]
-  egress_worker_filter     = "\"us-west-2\" in \"/tags/region\""
+  egress_worker_filter     = "\"${var.region}\" in \"/tags/region\""
 }
 
 #### Create Developer Organization Resources ####
@@ -185,19 +185,10 @@ resource "boundary_scope" "dev_org" {
   auto_create_admin_role   = true
 }
 
-# Create Project for Dev us-east-2 resources
-resource "boundary_scope" "dev_e2_project" {
-  name                     = "dev_e2_project"
-  description              = "Dev AWS US-East-2 Project"
-  scope_id                 = boundary_scope.dev_org.id
-  auto_create_admin_role   = true
-  auto_create_default_role = true
-}
-
-# Create Project for Dev us-west-2 resources
-resource "boundary_scope" "dev_w2_project" {
-  name                     = "dev_w2_project"
-  description              = "Dev AWS US-West-2 Project"
+# Create Project for Dev AWS resources
+resource "boundary_scope" "dev_aws_project" {
+  name                     = "dev_aws_project"
+  description              = "Dev AWS Project"
   scope_id                 = boundary_scope.dev_org.id
   auto_create_admin_role   = true
   auto_create_default_role = true
@@ -208,11 +199,11 @@ resource "boundary_target" "dev-db-target" {
   type                     = "tcp"
   name                     = "dev-db-target"
   description              = "Dev main database"
-  scope_id                 = boundary_scope.dev_w2_project.id
+  scope_id                 = boundary_scope.dev_aws_project.id
   session_connection_limit = -1
   default_port             = 5432
   address                  = split(":", aws_db_instance.postgres.endpoint)[0]
-  egress_worker_filter     = "\"us-west-2\" in \"/tags/region\""
+  egress_worker_filter     = "\"${var.region}\" in \"/tags/region\""
 
   brokered_credential_source_ids = [
     boundary_credential_library_vault.database.id
@@ -226,7 +217,7 @@ resource "boundary_credential_store_vault" "dev_vault" {
   namespace   = "admin/${vault_namespace.dev.path_fq}"
   address     = data.tfe_outputs.boundary_demo_init.values.vault_pub_url
   token       = vault_token.boundary-token-dev.client_token
-  scope_id    = boundary_scope.dev_w2_project.id
+  scope_id    = boundary_scope.dev_aws_project.id
 }
 
 # Create Database Credential Library
@@ -250,26 +241,26 @@ resource "boundary_scope" "it_org" {
   auto_create_admin_role   = true
 }
 
-# Create Project for IT us-west-2 resources
-resource "boundary_scope" "it_w2_project" {
-  name                     = "it_w2_project"
-  description              = "Corp IT AWS US-West-2 Project"
+# Create Project for IT AWS resources
+resource "boundary_scope" "it_aws_project" {
+  name                     = "it_aws_project"
+  description              = "Corp IT AWS Project"
   scope_id                 = boundary_scope.it_org.id
   auto_create_admin_role   = true
   auto_create_default_role = true
 }
 
-# Create the dynamic host catalog for PIE 
+# Create the dynamic host catalog for IT 
 resource "boundary_host_catalog_plugin" "it_dynamic_catalog" {
   depends_on = [time_sleep.wait_60_sec]
 
-  name        = "it_w2_catalog"
-  description = "IT AWS us-west-2 Catalog"
-  scope_id    = boundary_scope.it_w2_project.id
+  name        = "it_${var.region}_catalog"
+  description = "IT AWS ${var.region} Catalog"
+  scope_id    = boundary_scope.it_aws_project.id
   plugin_name = "aws"
 
   attributes_json = jsonencode({
-    "region"                      = "us-west-2",
+    "region"                      = var.region,
     "disable_credential_rotation" = true
   })
 
@@ -280,8 +271,8 @@ resource "boundary_host_catalog_plugin" "it_dynamic_catalog" {
 }
 
 # Create the host set for PIE team from dynamic host catalog
-resource "boundary_host_set_plugin" "it_w2_set" {
-  name            = "IT hosts in us-west-2"
+resource "boundary_host_set_plugin" "it_set" {
+  name            = "IT hosts in ${var.region}"
   host_catalog_id = boundary_host_catalog_plugin.it_dynamic_catalog.id
   attributes_json = jsonencode({
     "filters" = "tag:Team=IT",
@@ -292,11 +283,11 @@ resource "boundary_target" "it-rdp-target" {
   type                     = "tcp"
   name                     = "it-rdp-target"
   description              = "Target for testing RDP connections"
-  scope_id                 = boundary_scope.it_w2_project.id
+  scope_id                 = boundary_scope.it_aws_project.id
   session_connection_limit = -1
   default_port             = 3389
   host_source_ids = [
-    boundary_host_set_plugin.it_w2_set.id
+    boundary_host_set_plugin.it_set.id
   ]
-  egress_worker_filter = "\"us-west-2\" in \"/tags/region\""
+  egress_worker_filter = "\"${var.region}\" in \"/tags/region\""
 }

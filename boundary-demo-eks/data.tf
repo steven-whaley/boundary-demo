@@ -46,10 +46,6 @@ data "aws_ami" "windows" {
   }
 }
 
-data "aws_key_pair" "aws_key_name" {
-  key_name = var.aws_key_name
-}
-
 data "tfe_outputs" "boundary_demo_init" {
   organization = "swhashi"
   workspace    = "boundary-demo-init"

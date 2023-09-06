@@ -34,12 +34,17 @@ variable "db_password" {
   type        = string
 }
 
-variable "aws_key_name" {
-  type        = string
-  description = "The name of the key pair in your AWS account that you would like to add to the EC2 instances that are created"
-}
-
 variable "okta_user_password" {
   type = string
   description = "The password that will be set on the PIE, DEV, and IT Okta user accounts"
+}
+
+variable "admin_pass" {
+  type = string
+  description = "The password to set on the windows and linux targets for the admin user"
+}
+
+variable "public_key" {
+  type = string
+  description = "The public key to set in the authorized keys file in the SSH target and bastion host.  Used to log in to the hosts as ec2-user."
 }
