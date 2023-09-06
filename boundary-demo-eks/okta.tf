@@ -5,12 +5,17 @@ locals {
 
 # Create the Okta OAuth App for Boundary
 resource "okta_app_oauth" "okta_app" {
+  lifecycle {
+    ignore_changes = [groups]
+  }
+
   label                     = "HCP Boundary Demo"
   type                      = "web"
   login_uri                 = local.callback_url
   post_logout_redirect_uris = [local.logout_redirect_url]
   redirect_uris             = [local.callback_url]
   grant_types               = ["authorization_code"]
+  response_types  = ["code"]
   groups_claim {
     type        = "FILTER"
     filter_type = "REGEX"
