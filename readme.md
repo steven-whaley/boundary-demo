@@ -85,6 +85,9 @@ Once the boundary-demo-init run has completed init and apply the boundary-demo-e
 
 `terraform taint aws_instance.worker`
 
+### To Destroy
+The TF code creates a Session Recording Bucket object in the pie_org scope.  Boundary does not currently support deleting Session Recording Buckets so when attempting to run `terraform destroy` TF will throw an error.  This will prevent both the bucket from being removed and the associated pie_org scope in Boundary (since the bucket is a member of that scope).  Currently the workaround is to remove both the bucket and the pie_org object from TF state and then completely destroy the eks workspace.  Once that's completed run a destroy on the init workspace to delete the Boundary cluster, which will also delete the project and session recording bucket.  
+
 ## Connecting to Targets
 If you are using the Okta integration then:
 - Members of the dev_users group in Okta have permissions to connect to the targets in the dev_w2_project scope

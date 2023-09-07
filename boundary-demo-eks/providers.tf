@@ -14,7 +14,7 @@ terraform {
     }
     boundary = {
       source  = "hashicorp/boundary"
-      version = "1.1.7"
+      version = "1.1.9"
     }
     okta = {
       source  = "okta/okta"
@@ -42,10 +42,10 @@ provider "aws" {
 provider "tfe" {}
 
 provider "boundary" {
-  addr                            = data.tfe_outputs.boundary_demo_init.values.boundary_url
-  auth_method_id                  = data.tfe_outputs.boundary_demo_init.values.boundary_admin_auth_method
-  password_auth_method_login_name = var.boundary_user
-  password_auth_method_password   = var.boundary_password
+  addr                   = data.tfe_outputs.boundary_demo_init.values.boundary_url
+  auth_method_id         = data.tfe_outputs.boundary_demo_init.values.boundary_admin_auth_method
+  auth_method_login_name = var.boundary_user
+  auth_method_password   = var.boundary_password
 }
 
 provider "kubernetes" {

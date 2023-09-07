@@ -270,7 +270,7 @@ resource "aws_instance" "rdp-target" {
   monitoring             = true
   subnet_id              = module.boundary-eks-vpc.private_subnets[1]
   vpc_security_group_ids = [module.rdp-sec-group.security_group_id]
-  user_data = templatefile("./template_files/windows-target.tftpl", { admin_pass = var.admin_pass })
+  user_data              = templatefile("./template_files/windows-target.tftpl", { admin_pass = var.admin_pass })
 
   tags = {
     Team = "IT"
@@ -292,4 +292,16 @@ module "rdp-sec-group" {
       source_security_group_id = module.worker-sec-group.security_group_id
     },
   ]
+}
+
+# Create bucket for session recording
+resource "random_string" "boundary_bucket_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
+resource "aws_s3_bucket" "boundary_recording_bucket" {
+  depends_on = [ aws_instance.worker ]
+  bucket = "boundary-recording-bucket-${random_string.boundary_bucket_suffix.result}"
 }

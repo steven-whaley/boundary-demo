@@ -35,16 +35,16 @@ variable "db_password" {
 }
 
 variable "okta_user_password" {
-  type = string
+  type        = string
   description = "The password that will be set on the PIE, DEV, and IT Okta user accounts"
 }
 
 variable "admin_pass" {
-  type = string
+  type        = string
   description = "The password to set on the windows and linux targets for the admin user"
 }
 
 variable "public_key" {
-  type = string
+  type        = string
   description = "The public key to set in the authorized keys file in the SSH target and bastion host.  Used to log in to the hosts as ec2-user."
 }

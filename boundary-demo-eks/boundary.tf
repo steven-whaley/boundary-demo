@@ -19,7 +19,7 @@ resource "aws_iam_user" "boundary_dynamic_host_catalog" {
 }
 
 resource "aws_iam_user_policy_attachment" "boundary_dynamic_host_catalog" {
-  user   = aws_iam_user.boundary_dynamic_host_catalog.name
+  user       = aws_iam_user.boundary_dynamic_host_catalog.name
   policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
 }
 
@@ -104,6 +104,8 @@ resource "boundary_target" "pie-ssh-cert-target" {
     boundary_credential_library_vault_ssh_certificate.ssh_cert.id
   ]
   egress_worker_filter = "\"${var.region}\" in \"/tags/region\""
+  enable_session_recording = true
+  storage_bucket_id = boundary_storage_bucket.pie_session_recording_bucket.id
 }
 
 # Create generic TCP target to show SSH credential brokering
@@ -290,4 +292,23 @@ resource "boundary_target" "it-rdp-target" {
     boundary_host_set_plugin.it_set.id
   ]
   egress_worker_filter = "\"${var.region}\" in \"/tags/region\""
+}
+
+# Create Session Recording Bucket
+resource "boundary_storage_bucket" "pie_session_recording_bucket" {
+  name        = "PIE Session Recording Bucket"
+  description = "Session Recording bucket for PIE team"
+  scope_id    = boundary_scope.pie_org.id
+  plugin_name = "aws"
+  bucket_name = aws_s3_bucket.boundary_recording_bucket.id
+  attributes_json = jsonencode({
+    "region"                    = var.region,
+    disable_credential_rotation = true
+  })
+
+  secrets_json = jsonencode({
+    "access_key_id"     = aws_iam_access_key.boundary_dynamic_host_catalog.id,
+    "secret_access_key" = aws_iam_access_key.boundary_dynamic_host_catalog.secret
+  })
+  worker_filter = "\"${var.region}\" in \"/tags/region\""
 }

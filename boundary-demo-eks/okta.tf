@@ -15,7 +15,7 @@ resource "okta_app_oauth" "okta_app" {
   post_logout_redirect_uris = [local.logout_redirect_url]
   redirect_uris             = [local.callback_url]
   grant_types               = ["authorization_code"]
-  response_types  = ["code"]
+  response_types            = ["code"]
   groups_claim {
     type        = "FILTER"
     filter_type = "REGEX"
@@ -26,11 +26,11 @@ resource "okta_app_oauth" "okta_app" {
 
 # Create then assign the pie, dev and IT users groups to the Okta App
 resource "okta_user" "pie_user" {
-  first_name = "PIE"
-  last_name = "User"
-  login = "pie_user@boundary.lab"
-  email = "nobody@dev.null"
-  password = var.okta_user_password
+  first_name                = "PIE"
+  last_name                 = "User"
+  login                     = "pie_user@boundary.lab"
+  email                     = "nobody@dev.null"
+  password                  = var.okta_user_password
   expire_password_on_create = false
 }
 
@@ -41,7 +41,7 @@ resource "okta_group" "pie_users" {
 
 resource "okta_user_group_memberships" "pie_users" {
   user_id = okta_user.pie_user.id
-  groups = [okta_group.pie_users.id]
+  groups  = [okta_group.pie_users.id]
 }
 
 resource "okta_app_group_assignment" "pie_users" {
@@ -50,11 +50,11 @@ resource "okta_app_group_assignment" "pie_users" {
 }
 
 resource "okta_user" "dev_user" {
-  first_name = "DEV"
-  last_name = "User"
-  login = "dev_user@boundary.lab"
-  email = "nobody@dev.null"
-  password = var.okta_user_password
+  first_name                = "DEV"
+  last_name                 = "User"
+  login                     = "dev_user@boundary.lab"
+  email                     = "nobody@dev.null"
+  password                  = var.okta_user_password
   expire_password_on_create = false
 }
 
@@ -65,7 +65,7 @@ resource "okta_group" "dev_users" {
 
 resource "okta_user_group_memberships" "dev_users" {
   user_id = okta_user.dev_user.id
-  groups = [okta_group.dev_users.id]
+  groups  = [okta_group.dev_users.id]
 }
 
 resource "okta_app_group_assignment" "dev_users" {
@@ -74,11 +74,11 @@ resource "okta_app_group_assignment" "dev_users" {
 }
 
 resource "okta_user" "it_user" {
-  first_name = "IT"
-  last_name = "User"
-  login = "it_user@boundary.lab"
-  email = "nobody@dev.null"
-  password = var.okta_user_password
+  first_name                = "IT"
+  last_name                 = "User"
+  login                     = "it_user@boundary.lab"
+  email                     = "nobody@dev.null"
+  password                  = var.okta_user_password
   expire_password_on_create = false
 }
 
@@ -89,7 +89,7 @@ resource "okta_group" "it_users" {
 
 resource "okta_user_group_memberships" "it_users" {
   user_id = okta_user.it_user.id
-  groups = [okta_group.it_users.id]
+  groups  = [okta_group.it_users.id]
 }
 
 resource "okta_app_group_assignment" "it_users" {
