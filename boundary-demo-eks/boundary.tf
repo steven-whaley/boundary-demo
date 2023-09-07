@@ -298,7 +298,7 @@ resource "boundary_target" "it-rdp-target" {
 resource "boundary_storage_bucket" "pie_session_recording_bucket" {
   name        = "PIE Session Recording Bucket"
   description = "Session Recording bucket for PIE team"
-  scope_id    = boundary_scope.pie_org.id
+  scope_id    = "global"
   plugin_name = "aws"
   bucket_name = aws_s3_bucket.boundary_recording_bucket.id
   attributes_json = jsonencode({

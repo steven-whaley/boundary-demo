@@ -52,6 +52,7 @@ This repo consists of two modules that need to be run in the below order:
 | okta_baseurl | terraform | The base url for the Okta organization used for OIDC integration.  Probably okta.com |
 | okta_org_name | terraform | The organization name for the Okta organization use for OIDC integration i.e. dev-32201783 |
 | okta_user_password | terraform | The password to set on the PIE, DEV and IT users created in Okta |
+| admin_pass | terraform | The password to set on the Administrator account for the Windows target |
 | HCP_CLIENT_ID | environment | The Client ID used to authenticate the HCP provider |
 | HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate the HCP provider |
 | OKTA_API_TOKEN | environment | The token used to authenticate the Okta provider |
