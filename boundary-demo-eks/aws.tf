@@ -304,4 +304,5 @@ resource "random_string" "boundary_bucket_suffix" {
 resource "aws_s3_bucket" "boundary_recording_bucket" {
   depends_on = [ aws_instance.worker ]
   bucket = "boundary-recording-bucket-${random_string.boundary_bucket_suffix.result}"
+  force_destroy = true
 }

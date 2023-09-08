@@ -57,6 +57,10 @@ resource "aws_instance" "worker" {
     ignore_changes = [user_data_base64]
   }
 
+  depends_on = [
+    module.boundary-eks-vpc, boundary_worker.hcp_pki_worker, aws_key_pair.boundary_ec2_keys
+  ]
+
   ami           = data.aws_ami.aws_linux_hvm2.id
   instance_type = "t3.micro"
 
