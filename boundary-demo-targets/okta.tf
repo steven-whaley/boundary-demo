@@ -29,7 +29,16 @@ resource "okta_user" "pie_user" {
   first_name                = "PIE"
   last_name                 = "User"
   login                     = "pie_user@boundary.lab"
-  email                     = "nobody@dev.null"
+  email                     = "pie_user@dev.null"
+  password                  = var.okta_user_password
+  expire_password_on_create = false
+}
+
+resource "okta_user" "pie_user2" {
+  first_name = "PIE"
+  last_name  = "User2"
+  login      = "pie_user2@boundary.lab"
+  email      = "pie_user2@dev.null"
   password                  = var.okta_user_password
   expire_password_on_create = false
 }
@@ -44,6 +53,11 @@ resource "okta_user_group_memberships" "pie_users" {
   groups  = [okta_group.pie_users.id]
 }
 
+resource "okta_user_group_memberships" "pie_users2" {
+  user_id = okta_user.pie_user2.id
+  groups  = [okta_group.pie_users.id]
+}
+
 resource "okta_app_group_assignment" "pie_users" {
   app_id   = okta_app_oauth.okta_app.id
   group_id = okta_group.pie_users.id
@@ -53,7 +67,7 @@ resource "okta_user" "dev_user" {
   first_name                = "DEV"
   last_name                 = "User"
   login                     = "dev_user@boundary.lab"
-  email                     = "nobody@dev.null"
+  email                     = "dev_user@dev.null"
   password                  = var.okta_user_password
   expire_password_on_create = false
 }
@@ -77,7 +91,7 @@ resource "okta_user" "it_user" {
   first_name                = "IT"
   last_name                 = "User"
   login                     = "it_user@boundary.lab"
-  email                     = "nobody@dev.null"
+  email                     = "it_user@dev.null"
   password                  = var.okta_user_password
   expire_password_on_create = false
 }
@@ -106,6 +120,7 @@ resource "boundary_auth_method_oidc" "oidc_auth_method" {
   client_secret        = okta_app_oauth.okta_app.client_secret
   issuer               = format("%s%s.%s", "https://", var.okta_org_name, var.okta_baseurl)
   claims_scopes        = ["email", "groups", "profile"]
+  account_claim_maps   = ["nickname=name"]
   signing_algorithms   = ["RS256"]
   api_url_prefix       = data.tfe_outputs.boundary_demo_init.values.boundary_url
   is_primary_for_scope = true

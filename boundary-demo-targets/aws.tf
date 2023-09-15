@@ -12,7 +12,9 @@ locals {
       ["curl", "-o", "/etc/ssh/ca-key.pub", "-H", "X-Vault-Token: ${vault_token.read-key.client_token}", "-H", "X-Vault-Namespace: admin/${vault_namespace.pie.path_fq}", "${data.tfe_outputs.boundary_demo_init.values.vault_priv_url}/v1/${vault_mount.ssh.path}/public_key"],
       ["chown", "1000:1000", "/etc/ssh/ca-key.pub"],
       ["chmod", "644", "/etc/ssh/ca-key.pub"],
-      ["systemctl", "restart", "sshd"]
+      ["systemctl", "restart", "sshd"],
+      ["useradd", "-d", "/home/pie_user", "pie_user"],
+      ["useradd", "-d", "/home/pie_user2", "pie_user2"]
     ]
   }
 }
@@ -223,6 +225,11 @@ resource "aws_db_subnet_group" "postgres" {
   subnet_ids = module.boundary-eks-vpc.private_subnets
 }
 
+resource "random_password" "db_password" {
+  length  = 12
+  special = false
+}
+
 resource "aws_db_instance" "postgres" {
   allocated_storage           = 10
   db_name                     = "postgres"
@@ -231,8 +238,8 @@ resource "aws_db_instance" "postgres" {
   allow_major_version_upgrade = false
   auto_minor_version_upgrade  = false
   instance_class              = "db.t3.micro"
-  username                    = var.db_user
-  password                    = var.db_password
+  username                    = "vault"
+  password                    = random_password.db_password.result
   db_subnet_group_name        = aws_db_subnet_group.postgres.name
   skip_final_snapshot         = true
   vpc_security_group_ids      = [module.rds-sec-group.security_group_id]
@@ -302,7 +309,7 @@ resource "random_string" "boundary_bucket_suffix" {
 }
 
 resource "aws_s3_bucket" "boundary_recording_bucket" {
-  depends_on = [ aws_instance.worker ]
-  bucket = "boundary-recording-bucket-${random_string.boundary_bucket_suffix.result}"
+  depends_on    = [aws_instance.worker]
+  bucket        = "boundary-recording-bucket-${random_string.boundary_bucket_suffix.result}"
   force_destroy = true
 }

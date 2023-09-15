@@ -206,8 +206,8 @@ resource "vault_database_secrets_mount" "postgres" {
 
   postgresql {
     name              = "postgres"
-    username          = var.db_user
-    password          = var.db_password
+    username          = "vault"
+    password          = random_password.db_password.result
     connection_url    = "postgresql://{{username}}:{{password}}@${aws_db_instance.postgres.endpoint}/postgres"
     verify_connection = true
     allowed_roles     = ["db1"]

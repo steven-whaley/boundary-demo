@@ -103,9 +103,9 @@ resource "boundary_target" "pie-ssh-cert-target" {
   injected_application_credential_source_ids = [
     boundary_credential_library_vault_ssh_certificate.ssh_cert.id
   ]
-  egress_worker_filter = "\"${var.region}\" in \"/tags/region\""
+  egress_worker_filter     = "\"${var.region}\" in \"/tags/region\""
   enable_session_recording = true
-  storage_bucket_id = boundary_storage_bucket.pie_session_recording_bucket.id
+  storage_bucket_id        = boundary_storage_bucket.pie_session_recording_bucket.id
 }
 
 # Create generic TCP target to show SSH credential brokering
@@ -141,7 +141,7 @@ resource "boundary_credential_library_vault_ssh_certificate" "ssh_cert" {
   description         = "Signed SSH Certificate Credential Library"
   credential_store_id = boundary_credential_store_vault.pie_vault.id
   path                = "ssh/sign/cert-role" # change to Vault backend path
-  username            = "ec2-user"
+  username            = "{{truncateFrom .User.Email \"@\"}}"
   key_type            = "ecdsa"
   key_bits            = 384
   extensions = {
@@ -296,6 +296,8 @@ resource "boundary_target" "it-rdp-target" {
 
 # Create Session Recording Bucket
 resource "boundary_storage_bucket" "pie_session_recording_bucket" {
+  depends_on = [aws_instance.worker]
+
   name        = "PIE Session Recording Bucket"
   description = "Session Recording bucket for PIE team"
   scope_id    = "global"

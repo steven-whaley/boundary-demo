@@ -7,6 +7,6 @@ variable "boundary_password" {
 }
 
 variable "region" {
-  type = string
+  type        = string
   description = "The AWS region into which to deploy the HVN"
 }

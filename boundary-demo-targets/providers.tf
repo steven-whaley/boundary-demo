@@ -30,7 +30,7 @@ terraform {
   cloud {
     organization = "swhashi"
     workspaces {
-      name = "boundary-demo-eks"
+      name = "boundary-demo-targets"
     }
   }
 }

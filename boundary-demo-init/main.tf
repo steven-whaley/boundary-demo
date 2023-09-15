@@ -1,5 +1,5 @@
 resource "random_string" "random" {
-  length = 4
+  length  = 4
   special = "false"
 }
 
@@ -8,7 +8,7 @@ resource "hcp_boundary_cluster" "boundary-demo" {
   cluster_id = "demo-cluster-${random_string.random.result}"
   username   = var.boundary_user
   password   = var.boundary_password
-  tier = "PLUS"
+  tier       = "PLUS"
 }
 
 resource "hcp_hvn" "boundary-vault-hvn" {
