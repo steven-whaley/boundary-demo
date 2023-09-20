@@ -1,3 +1,6 @@
+# 9-20-2023
+* Added SSH certificate target that generates a certificate for EC2 user so that when Okta integration is not configured there is still a target that can be used to log in to an SSH certificate target
+
 # 9-18-2023
 
 * Added delay for storage bucket creation to allow worker to come up and register first. 
