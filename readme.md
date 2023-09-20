@@ -24,97 +24,137 @@ This terraform code builds an HCP Boundary enviroment that inclues connectivity 
 
 ## Setup
 ### Workspaces and Variables
-This repo was built to run on Terraform Cloud or Enterprise.  It uses the tfe_outputs data source to pass parameters from the init module to the build module.  If you want to run this locally you will need to modify the code to use cross state sharing to populate those values.  Additionally, you will need to update or remote the cloud provider block to match your Terraform configuration. 
+This repo was built to run on Terraform Cloud or Enterprise.  It uses the tfe_outputs data source to pass parameters between the boundary_demo_init workspace and other workspaces.  If you want to run this locally you will need to modify the code to use cross state sharing to populate those values.  
 
-This repo consists of two modules that need to be run in the below order:
+The ***providers.tf*** file in each workspace includes a cloud block that targets a TFC/TFE organization.  You will need to update this block to reflect your TFC/TFE org name.  
+
+This repo consists of three modules:
  
-**boundary-demo-init** - This module builds an HCP Boundary Cluster and HCP Vault Cluster along with an associated HVN for the Vault Cluster.  
-**boundary-demo-eks** - This module does the bulk of the work, building out all of the Boundary and Vault configuration as well as the AWS components used as workers and targets.
+**boundary-demo-tfc-build** - This module is run using local terraform execution and build the boundary-demo-init and boundary-demo-targets workspaces in TFC/TFE
 
-#### boundary-demo-init
-| Variable | Type | Purpose |
-| --------- | -------- | -------- |
-| boundary_user | terraform | The user name you would like to use for the default admin user created in the HCP Boundary Cluster |
-| boundary_password | terraform | The password you would like to use for the default admin user created in the HCP Boundary Cluster |
-| region | terraform | The AWS region into which to deploy the Hashicorp Virtual Network |
-| HCP_CLIENT_ID | environment | The Client ID used to authenticate to HCP |
-| HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate to HCP |
+**boundary-demo-init** - This workspace builds an HCP Boundary cluster and HCP Vault cluster along with an associated HVN for the Vault cluster.  
 
+**boundary-demo-targets** - This workspace does the bulk of the work, building out all of the Boundary and Vault configuration as well as the AWS components used as workers and targets.
 
-#### boundary-demo-eks
-| Variable | Type | Purpose |
-| --------- | -------- | -------- |
-| region | terraform | The AWS region into which to deploy the worker and targets |
-| boundary_user | terraform | The Boundary admin user that will be set in the provider | 
-| boundary_password | terraform | The Boundary admin user password that will be set in the provider |
-| db_user | terraform | The username to set on the Postgres database Boundary target |
-| db_password | terraform | The password to set on the Postgres database Boundary target |
-| okta_baseurl | terraform | The base url for the Okta organization used for OIDC integration.  Probably okta.com |
-| okta_org_name | terraform | The organization name for the Okta organization use for OIDC integration i.e. dev-32201783 |
-| okta_user_password | terraform | The password to set on the PIE, DEV and IT users created in Okta |
-| admin_pass | terraform | The password to set on the Administrator account for the Windows target |
-| HCP_CLIENT_ID | environment | The Client ID used to authenticate the HCP provider |
-| HCP_CLIENT_SECRET | environment | The Secret Key used to authenticate the HCP provider |
-| OKTA_API_TOKEN | environment | The token used to authenticate the Okta provider |
-| TFE_TOKEN | environment | The token used to authenticate the Terraform provider to use the tfe_outputs data source |
-| AWS_ACCESS_KEY_ID | environment | The AWS Access Key used to authenticate the AWS provider |
-| AWS_SECRET_ACCESS_KEY | environment | The AWS Secret Key used to authenticate the AWS provider |
+| Variable | Type | Sensitive | Purpose |
+| --------- | -------- | -------- | -------- |
+| **organization** | terraform | No | The TFC/TFE Organization Name |
+| **boundary_user** | terraform | No | The username the default admin user created in the HCP Boundary Cluster |
+| **boundary_password** | terraform | Yes | The password of the default admin user created in the HCP Boundary Cluster |
+| **region** | terraform | No | The AWS region into which to deploy the Hashicorp Virtual Network and AWS resources |
+| **okta_baseurl** | terraform | No | The base url of the Okta organization to use for OIDC integration.  Usually okta.com |
+| **okta_org_name** | terraform | No | The organization name of hte OKta organization to use for OIDC integration i.e dev-32201783 |
+| **okta_user_password** | terraform | Yes | The password to set on the Okta users created and added to the Boundary application |
+| **admin_pass** | terraform | Yes | The password to set for the Administrator account on the Windows target |
+| **public_key** | terraform | No | The SSH public key to set on the AWS EC2 instances as the default login |
+| **aws_varset** | terraform | No | The name of a pre-existing Variable Set that contains AWS credentials set as environment variables |
+| **OKTA_API_TOKEN** | environment | Yes | The API token used to authenticate the Okta provider |
+| **HCP_CLIENT_ID** | environment | Yes | The Client ID used to authenticate the HCP provider |
+| **HCP_CLIENT_SECRET** | environment | Yes | The Secret Key used to authenticate the HCP provider |
 
-**Notes**
+It is recommended that you pass any variables marked sensitive as environment variables or through CLI flags.  
+
+**Important Notes**
 - If you do not wish to use the Okta integration you can delete or comment out the okta.tf file.  
 - The Dynamic Host Set setup uses an IAM role and User configuration that is specific to Hashicorp Employee AWS sandbox accounts.  If used in account without restrictions on the ability to create IAM users and policies then you will want to modify the configuration at the top of the boundary.tf config file to create the required IAM user and policy directly.  
 
 ### To Build
-Set the variables to appropriate values and update the cloud block in the providers.tf files in each module as appropriate.  
-Init and apply the boundary-demo-init terraform first
+- Set the non-sensitive variables for the *boundary-demo-tfc-build* module in a terraform.tfvars file.  
+- Set the sensitive variables as environment variables. 
 
-`boundary-demo-init % terraform init`
+    - For example:
 
-`boundary-demo-init % terraform apply -auto-approve`
+    - `export TF_VAR_HCP_CLIENT_SECRET=123456789`
+- Update the **cloud block** in the providers.tf file in the *boundary-demo-init* and *boundary-demo-targets* workspaces to reflect your TFE/TFC organization name.  
+- Once all variables have been set, perform a terraform init and apply on the *boundary-demo-tfc-build* module.  
 
-Once the boundary-demo-init run has completed init and apply the boundary-demo-eks terraform
+    - `boundary-demo-tfc-build % terraform init`
 
-`boundary-demo-eks % terraform init`
+    - `boundary-demo-tfc-build % terraform apply -auto-approve`
 
-`boundary-demo-eks % terraform apply -auto-approve`
+- This will create two workspaces in your TFC environment: *boundary-demo-init* and *boundary-demo-targets*.  
+- Build the *boundary-demo-init* workspace first.  
+
+    - `boundary-demo-init % terraform init`
+
+    - `boundary-demo-init % terraform apply -auto-approve`
+
+- Once the *boundary-demo-init* run has completed perform an init and apply on the *boundary-demo-targets* workspace
+
+    - `boundary-demo-targets % terraform init`
+
+    - `boundary-demo-targets % terraform apply -auto-approve`
 
 **Notes**: 
 - The terraform code is generally stable and completes in a single run but if you experience issues a second run is usually enough to correct them.  
 - If the self-managed worker does not come up properly you can rebuild it by tainting the boundary_worker and aws_instance resources in the created in the worker.tf file and then rerunning the terraform apply on the boundary-demo-eks workspace.  
 
-`terraform taint boundary_worker.hcp_pki_worker`
+    - `terraform taint boundary_worker.hcp_pki_worker`
 
-`terraform taint aws_instance.worker`
+    - `terraform taint aws_instance.worker`
 
 ### To Destroy
-The TF code creates a Session Recording Bucket object in the pie_org scope.  Boundary does not currently support deleting Session Recording Buckets so when attempting to run `terraform destroy` TF will throw an error.  This will prevent both the bucket from being removed and the associated pie_org scope in Boundary (since the bucket is a member of that scope).  Currently the workaround is to remove both the bucket and the pie_org object from TF state and then completely destroy the eks workspace.  Once that's completed run a destroy on the init workspace to delete the Boundary cluster, which will also delete the project and session recording bucket.  
+Destroy the workspaces in the reverse order that you created them.  Run a `terraform destroy` first on the *boundary-demo-targets* workspace, then on the *boundary-demo-init* workspace and finally on the *boundary-demo-tfc-build* module.  
+
+The TF code creates a Session Recording Bucket object in the global scope.  **Boundary does not currently support deleting Session Recording Buckets so when attempting to run `terraform destroy` on the *boundary-demo-targets* workspace TF will throw an error.**  Currently the workaround is remove the boundary_storage_bucket resource from state and then run the destroy.  
+
+- `terraform state rm boundary_storage_bucket.pie_session_recording_bucket` 
 
 ## Connecting to Targets
-If you are using the Okta integration then:
-- Members of the dev_users group in Okta have permissions to connect to the targets in the dev_w2_project scope
-- Members of the pie_users group in Okta have permissions to connect to the targets in the pie_w2_project scope
-- Members of the it_users group in Okta have permissions to connect to the targets in the it_w2_project scope
+### Okta Users
+When using the Okta integration four users are created in your directory.  
 
-### Connect to the SSH certificate target
+| User | Okta Group | Boundary Org | Description |
+| --------- | -------- | -------- | -------- |
+| pie_user@boundary.lab | pie_users | PIE Org | Has rights to connect to all targets in PIE org |
+| pie_user2@boundary.lab | pie_users | PIE Org | Has rights to connect to all targets in PIE org |
+| dev_user@boundary.lab | dev_users | DEV Org | Has rights to connect to all targets in DEV org |
+| it_user@boundary.lab | it_users | IT Org | Has rights to connect to all targets in IT org |
+
+**Passwords** - All Okta users have the same password which is the value of the okta_user_password terraform variable that you set in the *boundary-demo-tfc-build* workspace.  
+
+### Available Targets
+| Target | Project | Credentials | Description |
+| --------- | -------- | -------- | -------- |
+| pie-ssh-cert-target | pie_aws_project | Injected using Vault SSH Cert Secrets Engine | Connects to the SSH target as the logged in username.  **Only usable when logged in via Okta as pie_user or pie_user2** |
+| pie-ssh-cert-target-admin | pie_aws_project | Injected using Vault SSH Cert Secrets Engine | Connects to the SSH target as ec2-user |
+| pie-ssh-tcp-target | pie_aws_project | User supplied ssh key | Connect using user supplied SSH key |
+| pie-k8s-target | pie_aws_project | User supplied kubeconfig | Connect using user supplied kubeconfig |
+| dev-db-target | dev_aws_project | Brokered from Vault DB Secrets Engine | Connects using credentials brokered from Vault |
+| it-rdp-target | it_aws_project | User supplied username and password | Connect using Administrator user and password set as admin_pass TF variable |
+
+### Authenticate to Boundary
+Connect as admin user.  The admin_auth_method_id can be found in the outputs of the boundary-demo-init workspace:
+`boundary authenticate password -auth-method-id <admin_auth_method_id>`
+
+Connect as Okta user:
+`boundary authenticate`
+
+### Connect to the SSH certificate target as Okta user
+
 `boundary connect ssh -target-scope-name pie_aws_project -target-name pie-ssh-cert-target`
 
-### Connecting to SSH TCP taget with brokered credentials for some admin user configured on the server
-You can use the private key that matches the public key supplied in the public_key terraform variable to connect to the SSH target by passing the -i flag to ssh
+### Connect to the SSH certificate target as ec2-user admin account
+
+`boundary connect ssh -target-scope-name pie_aws_project -target-name pie-ssh-cert-target-admin`
+
+### Connect to SSH TCP target (no injected credentials)
+When you set up the *boundary-demo-tfc-build* workspace you set a public key to install on the EC2 instances.  You will use the private key that matches that public key to log in to the SSH server.  You can use the -i flag to point to the private key.  
 
 `boundary connect ssh -target-scope-name pie_aws_project -target-name pie-ssh-tcp-target -- -l ec2-user -i <path/to/private_key>`
 
 ### Connect to the K8s target
-You will still need credentials to connect to the EKS cluster via K8s, which you can get via the AWS CLI.  Be sure to set the appropriate region where you deployed your AWS resources.
+You will still need credentials to connect to the EKS cluster via K8s, which you can get via the AWS CLI.  Be sure to set the appropriate region where you deployed your AWS resources.  You will need the AWS CLI installed and configured to generate EKS credentials.  
 
 `aws eks update-kubeconfig --name boundary-demo-cluster --region $AWS_REGION`
 
-`boundary connect kube -target-scope-name pie_aws_project -target-name pie-k8s-target -- get pods`
+`boundary connect kube -target-scope-name pie_aws_project -target-name pie-k8s-target -- get nodes`
 
 ### Connect to the Postgres database target
 `boundary connect postgres -target-scope-name dev_aws_project -target-name dev-db-target -dbname postgres`
 
 ### Connect to the RDP target
-**Username:** Administrator   
+**Username:** BOUNDARY\Administrator   
 **Password:** The value of the *admin_pass* terraform variable in the boundary-demo-eks workspace
 
 **On Windows**

@@ -14,7 +14,7 @@ locals {
       ["chmod", "644", "/etc/ssh/ca-key.pub"],
       ["systemctl", "restart", "sshd"],
       ["useradd", "-d", "/home/pie_user", "pie_user"],
-      ["useradd", "-d", "/home/pie_user2", "pie_user2"]
+      ["useradd", "-d", "/home/pie_user2", "pie_user2"],
     ]
   }
 }

@@ -1,8 +1,0 @@
-organization = "tfc_org"
-boundary_user = "admin"
-region = "us-west-2"
-okta_baseurl = "okta.com"
-okta_org_name = "dev-1234567"
-HCP_CLIENT_ID = "TOINRHOINGOITNING"
-public_key = ""
-aws_varset = "AWS credentials"

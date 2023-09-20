@@ -30,7 +30,6 @@ resource "aws_iam_access_key" "boundary_dynamic_host_catalog" {
 }
 
 ##### End of the Hashicorp Sandbox specific configuration #####
-
 ##### Platform Infrastructure Engineering Resources #####
 
 # Create Organization Scope for Platform Engineering
@@ -89,11 +88,11 @@ resource "boundary_host_set_plugin" "pie_set" {
   })
 }
 
-# Create SSH Certificate target in PIE team AWS project
+# Create SSH Certificate targets in PIE team AWS project
 resource "boundary_target" "pie-ssh-cert-target" {
   type                     = "ssh"
   name                     = "pie-ssh-cert-target"
-  description              = "Target for testing SSH Certificate Auth"
+  description              = "Connect to the SSH server using OIDC username.  Only works for OIDC users."
   scope_id                 = boundary_scope.pie_aws_project.id
   session_connection_limit = -1
   default_port             = 22
@@ -108,19 +107,34 @@ resource "boundary_target" "pie-ssh-cert-target" {
   storage_bucket_id        = boundary_storage_bucket.pie_session_recording_bucket.id
 }
 
-# Create generic TCP target to show SSH credential brokering
-resource "boundary_target" "pie-ssh-tcp-target" {
-  type                     = "tcp"
-  name                     = "pie-ssh-tcp-target"
-  description              = "Target for testing SSH tcp connections"
+resource "boundary_target" "pie-ssh-cert-target-admin" {
+  type                     = "ssh"
+  name                     = "pie-ssh-cert-target-admin"
+  description              = "Connect to the SSH target as the default ec2-user account"
   scope_id                 = boundary_scope.pie_aws_project.id
   session_connection_limit = -1
   default_port             = 22
   host_source_ids = [
     boundary_host_set_plugin.pie_set.id
   ]
-  brokered_credential_source_ids = [
-    boundary_credential_username_password.admin_creds.id
+  injected_application_credential_source_ids = [
+    boundary_credential_library_vault_ssh_certificate.ssh_cert_admin.id
+  ]
+  egress_worker_filter     = "\"${var.region}\" in \"/tags/region\""
+  enable_session_recording = true
+  storage_bucket_id        = boundary_storage_bucket.pie_session_recording_bucket.id
+}
+
+# Create generic TCP target to show SSH credential brokering
+resource "boundary_target" "pie-ssh-tcp-target" {
+  type                     = "tcp"
+  name                     = "pie-ssh-tcp-target"
+  description              = "Connect to the SSH target without injected credentials"
+  scope_id                 = boundary_scope.pie_aws_project.id
+  session_connection_limit = -1
+  default_port             = 22
+  host_source_ids = [
+    boundary_host_set_plugin.pie_set.id
   ]
   egress_worker_filter = "\"${var.region}\" in \"/tags/region\""
 }
@@ -149,19 +163,17 @@ resource "boundary_credential_library_vault_ssh_certificate" "ssh_cert" {
   }
 }
 
-# Create PIE local Credential Store
-resource "boundary_credential_store_static" "pie_static_store" {
-  name        = "pie_static_store"
-  description = "Static credential store for Platform Engineering Team"
-  scope_id    = boundary_scope.pie_aws_project.id
-}
-
-resource "boundary_credential_username_password" "admin_creds" {
-  name                = "admin_creds"
-  description         = "Admin credentials for local application on Corp IT target"
-  credential_store_id = boundary_credential_store_static.pie_static_store.id
-  username            = "admin"
-  password            = "Password123"
+resource "boundary_credential_library_vault_ssh_certificate" "ssh_cert_admin" {
+  name                = "ssh_cert_admin"
+  description         = "Signed SSH Certificate Credential Library"
+  credential_store_id = boundary_credential_store_vault.pie_vault.id
+  path                = "ssh/sign/cert-role" # change to Vault backend path
+  username            = "ec2-user"
+  key_type            = "ecdsa"
+  key_bits            = 384
+  extensions = {
+    permit-pty = ""
+  }
 }
 
 # Create K8s target in Platform Engineering Project
@@ -295,8 +307,15 @@ resource "boundary_target" "it-rdp-target" {
 }
 
 # Create Session Recording Bucket
-resource "boundary_storage_bucket" "pie_session_recording_bucket" {
+# Delay creation to give the worker time to register
+
+resource "time_sleep" "worker_timer" {
   depends_on = [aws_instance.worker]
+  create_duration = "120s"
+}
+
+resource "boundary_storage_bucket" "pie_session_recording_bucket" {
+  depends_on = [time_sleep.worker_timer]
 
   name        = "PIE Session Recording Bucket"
   description = "Session Recording bucket for PIE team"

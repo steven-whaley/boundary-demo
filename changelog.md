@@ -1,4 +1,12 @@
-# 7-9-2023
+# 9-18-2023
+
+* Added delay for storage bucket creation to allow worker to come up and register first. 
+* Added TFC deployment module to build the init and targets workspaces in TFC
+* Added username templating for SSH cert target
+  - Users pie_user and pie_user2 can be used to log in via SSH certificates to the ssh-cert-target
+* Windows target is now created as a domain controller
+
+# 9-7-2023
 
 * Changed Okta account provisioning process.  
   - Terraform code now creates the Okta Users and Groups so they do not need to be pre-created.  

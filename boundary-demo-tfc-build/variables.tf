@@ -62,8 +62,3 @@ variable "HCP_CLIENT_SECRET" {
   type        = string
   description = "The HCP Client Secret to authenticate the HCP provider"
 }
-
-# variable "TFE_TOKEN" {
-#   type        = string
-#   description = "The TFE_TOKEN to use to interact with the TFC API.  Needed to use the tfe_outputs data source."
-# }
