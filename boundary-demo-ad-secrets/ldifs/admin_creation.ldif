@@ -1,0 +1,23 @@
+dn: CN={{.Username}},CN=Users,DC=boundary,DC=lab
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: user
+userPrincipalName: {{.Username}}@boundary.lab
+sAMAccountName: {{.Username}}
+
+dn: CN={{.Username}},CN=Users,DC=boundary,DC=lab
+changetype: modify
+replace: unicodePwd
+unicodePwd::{{ printf "%q" .Password | utf16le | base64 }}
+-
+replace: userAccountControl
+userAccountControl: 66048
+-
+
+dn: CN=Domain Admins,CN=Users,DC=boundary,DC=lab
+changetype: modify
+add: member
+member: CN={{.Username}},CN=Users,DC=boundary,DC=lab
+-

@@ -1,13 +1,16 @@
+# Create a project to hold the workspaces
+
 resource "tfe_project" "boundary_demo_project" {
   organization = var.organization
   name = "Boundary Demo Project"
 }
 
+# Create the workspaces
 resource "tfe_workspace" "boundary_demo_init" {
   name           = "boundary-demo-init"
   description = "Workspace to create HCP Boundary and Vault clusters"
   execution_mode = "remote"
-  remote_state_consumer_ids = [tfe_workspace.boundary_demo_eks.id]
+  remote_state_consumer_ids = [tfe_workspace.boundary_demo_eks.id, tfe_workspace.boundary_demo_ad_secrets.id]
   assessments_enabled = false
   project_id = tfe_project.boundary_demo_project.id
 }
@@ -16,15 +19,26 @@ resource "tfe_workspace" "boundary_demo_eks" {
   name           = "boundary-demo-targets"
   description = "Workspace to create Boundary Config and Targets in AWS"
   execution_mode = "remote"
+  remote_state_consumer_ids = [tfe_workspace.boundary_demo_ad_secrets.id]
   assessments_enabled = false
   project_id = tfe_project.boundary_demo_project.id
 }
 
+resource "tfe_workspace" "boundary_demo_ad_secrets" {
+  name           = "boundary-demo-ad-secrets"
+  description = "Workspace to create set up the AD secrets engine for use with the RDP target"
+  execution_mode = "remote"
+  assessments_enabled = false
+  project_id = tfe_project.boundary_demo_project.id
+}
+
+# Create a variable set for all of the project related variables
 resource "tfe_variable_set" "boundary_demo_varset" {
     name = "Boundary Demo Varset"
     description = "Variable set for variables in Boundary Demo Project workspaces"
 }
 
+# Add variable to the variable set
 resource "tfe_variable" "boundary_user" {
   key             = "boundary_user"
   value           = var.boundary_user
@@ -118,16 +132,19 @@ resource "tfe_variable" "HCP_CLIENT_SECRET" {
   variable_set_id = tfe_variable_set.boundary_demo_varset.id
 }
 
+#Attach the variable set to all workspaces in the project
 resource "tfe_project_variable_set" "boundary_demo_varset" {
     variable_set_id = tfe_variable_set.boundary_demo_varset.id
     project_id = tfe_project.boundary_demo_project.id
 }
 
+# Get information on the variable set that contains the AWS credentials
 data "tfe_variable_set" "aws_varset" {
     name = var.aws_varset
     organization = var.organization
 }
 
+# Add the varset with AWS credentials to the project
 resource "tfe_project_variable_set" "aws_varset" {
     variable_set_id = data.tfe_variable_set.aws_varset.id
     project_id = tfe_project.boundary_demo_project.id

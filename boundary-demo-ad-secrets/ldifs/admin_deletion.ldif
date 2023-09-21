@@ -1,0 +1,2 @@
+dn: CN={{.Username}},CN=Users,DC=boundary,DC=lab
+changetype: delete

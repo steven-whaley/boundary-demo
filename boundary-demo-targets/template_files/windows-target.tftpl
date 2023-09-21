@@ -1,10 +1,32 @@
+<persist>true</persist>
 <powershell>
 Start-Transcript -Path "C:\Windows\cloudinit.log"
 
-net user Administrator "${admin_pass}"
+$path= 'HKLM:\Software\UserData'
 
-$NewPassword = ConvertTo-SecureString "${admin_pass}" -AsPlainText -Force
+if(!(Get-Item $Path -ErrorAction SilentlyContinue)) {
+    New-Item $Path
+    New-ItemProperty -Path $Path -Name RunCount -Value 0 -PropertyType dword
+}
 
-Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
-Install-ADDSForest -DomainName boundary.lab -InstallDNS -SafeModeAdministratorPassword $NewPassword -Confirm:$false
+$runCount = Get-ItemProperty -Path $path -Name Runcount -ErrorAction SilentlyContinue | Select-Object -ExpandProperty RunCount
+
+if($runCount -eq 0) {
+    $runCount = 1 + [int]$runCount
+    
+    net user Administrator "${admin_pass}"
+
+    $NewPassword = ConvertTo-SecureString "${admin_pass}" -AsPlainText -Force
+
+    Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
+    Install-ADDSForest -DomainName boundary.lab -InstallDNS -SafeModeAdministratorPassword $NewPassword -Confirm:$false
+}
+
+if($runCount -eq 1) {
+    $runCount = 1 + [int]$runCount
+
+    Install-WindowsFeature AD-Certificate -IncludeManagementTools
+    Install-AdcsCertificationAuthority -CAType EnterpriseRootCA -CACommonName $(hostname) -Confirm:$false
+    Restart-Computer -Confirm:$false
+}
 </powershell>

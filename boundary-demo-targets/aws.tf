@@ -271,7 +271,7 @@ module "rds-sec-group" {
 # Windows Target
 resource "aws_instance" "rdp-target" {
   ami           = data.aws_ami.windows.id
-  instance_type = "t3.micro"
+  instance_type = "t3.medium"
 
   key_name               = aws_key_pair.boundary_ec2_keys.key_name
   monitoring             = true
@@ -298,6 +298,14 @@ module "rdp-sec-group" {
       rule                     = "rdp-tcp"
       source_security_group_id = module.worker-sec-group.security_group_id
     },
+  ]
+
+  ingress_with_cidr_blocks = [
+    {
+      rule        = "all-all"
+      description = "Allow ingress from everything in VPC"
+      cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
+    }
   ]
 }
 
