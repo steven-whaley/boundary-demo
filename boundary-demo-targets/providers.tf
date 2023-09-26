@@ -8,18 +8,18 @@ terraform {
       source  = "hashicorp/hcp"
       version = "0.52.0"
     }
-    kubernetes = {
-      version = "2.20.0"
-      source  = "hashicorp/kubernetes"
-    }
+    # kubernetes = {
+    #   version = "2.20.0"
+    #   source  = "hashicorp/kubernetes"
+    # }
     boundary = {
       source  = "hashicorp/boundary"
       version = "1.1.9"
     }
-    okta = {
-      source  = "okta/okta"
-      version = "3.46.0"
-    }
+    # okta = {
+    #   source  = "okta/okta"
+    #   version = "3.46.0"
+    # }
     tfe = {
       version = "0.42.0"
     }
@@ -48,16 +48,16 @@ provider "boundary" {
   auth_method_password   = var.boundary_password
 }
 
-provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-  token                  = data.aws_eks_cluster_auth.zts.token
-}
+# provider "kubernetes" {
+#   host                   = module.eks.cluster_endpoint
+#   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+#   token                  = data.aws_eks_cluster_auth.zts.token
+# }
 
-provider "okta" {
-  org_name = var.okta_org_name
-  base_url = var.okta_baseurl
-}
+# provider "okta" {
+#   org_name = var.okta_org_name
+#   base_url = var.okta_baseurl
+# }
 
 provider "vault" {
   address   = data.tfe_outputs.boundary_demo_init.values.vault_pub_url

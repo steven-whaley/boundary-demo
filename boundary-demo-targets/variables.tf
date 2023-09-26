@@ -4,25 +4,25 @@ variable "region" {
   default     = "us-west-2"
 }
 
-variable "okta_baseurl" {
-  description = "The base url for the Okta organization used for OIDC integration. Probably okta.com"
-  type        = string
-}
+# variable "okta_baseurl" {
+#   description = "The base url for the Okta organization used for OIDC integration. Probably okta.com"
+#   type        = string
+# }
 
-variable "okta_org_name" {
-  description = "The organization name for the Okta organization use for OIDC integration i.e. dev-32201783"
-  type        = string
-}
+# variable "okta_org_name" {
+#   description = "The organization name for the Okta organization use for OIDC integration i.e. dev-32201783"
+#   type        = string
+# }
 
-variable "okta_user_password" {
-  type        = string
-  description = "The password that will be set on the PIE, DEV, and IT Okta user accounts"
-}
+# variable "okta_user_password" {
+#   type        = string
+#   description = "The password that will be set on the PIE, DEV, and IT Okta user accounts"
+# }
 
-variable "admin_pass" {
-  type        = string
-  description = "The password to set on the windows and linux targets for the admin user"
-}
+# variable "admin_pass" {
+#   type        = string
+#   description = "The password to set on the windows and linux targets for the admin user"
+# }
 
 variable "boundary_user" {
   type        = string

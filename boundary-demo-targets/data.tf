@@ -2,9 +2,9 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-data "aws_eks_cluster_auth" "zts" {
-  name = module.eks.cluster_id
-}
+# data "aws_eks_cluster_auth" "zts" {
+#   name = module.eks.cluster_id
+# }
 
 data "aws_ami" "aws_linux_hvm2" {
   most_recent = true

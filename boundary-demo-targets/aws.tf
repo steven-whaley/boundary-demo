@@ -50,16 +50,7 @@ module "boundary-eks-vpc" {
   enable_nat_gateway   = true
   single_nat_gateway   = true
   enable_dns_hostnames = true
-
-  public_subnet_tags = {
-    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
-    "kubernetes.io/role/elb"                      = 1
-  }
-
-  private_subnet_tags = {
-    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
-    "kubernetes.io/role/internal-elb"             = 1
-  }
+ 
 }
 
 ### Create peering connection to Vault HVN 
@@ -110,56 +101,56 @@ resource "aws_route" "vault" {
   vpc_peering_connection_id = hcp_aws_network_peering.vault.provider_peering_id
 }
 
-# Create EKS Cluster boundary target
-module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "18.31.2"
+# # Create EKS Cluster boundary target
+# module "eks" {
+#   source  = "terraform-aws-modules/eks/aws"
+#   version = "18.31.2"
 
-  cluster_name                    = local.cluster_name
-  cluster_version                 = "1.24"
-  cluster_endpoint_private_access = true
-  cluster_endpoint_public_access  = true
-  subnet_ids                      = module.boundary-eks-vpc.private_subnets
-  vpc_id                          = module.boundary-eks-vpc.vpc_id
+#   cluster_name                    = local.cluster_name
+#   cluster_version                 = "1.24"
+#   cluster_endpoint_private_access = true
+#   cluster_endpoint_public_access  = true
+#   subnet_ids                      = module.boundary-eks-vpc.private_subnets
+#   vpc_id                          = module.boundary-eks-vpc.vpc_id
 
-  cluster_addons = {
-    vpc-cni = {
-      most_recent = true
-    }
-  }
+#   cluster_addons = {
+#     vpc-cni = {
+#       most_recent = true
+#     }
+#   }
 
-  cluster_security_group_additional_rules = {
-    api_ingress_from_worker = {
-      description              = "API Ingress from Boundary Worker"
-      protocol                 = "tcp"
-      from_port                = 443
-      to_port                  = 443
-      type                     = "ingress"
-      source_security_group_id = module.worker-sec-group.security_group_id
-    }
-  }
+#   cluster_security_group_additional_rules = {
+#     api_ingress_from_worker = {
+#       description              = "API Ingress from Boundary Worker"
+#       protocol                 = "tcp"
+#       from_port                = 443
+#       to_port                  = 443
+#       type                     = "ingress"
+#       source_security_group_id = module.worker-sec-group.security_group_id
+#     }
+#   }
 
-  #EKS Managed Node Group(s)
-  eks_managed_node_group_defaults = {
-    disk_size      = 50
-    instance_types = ["t3.small"]
-  }
+#   #EKS Managed Node Group(s)
+#   eks_managed_node_group_defaults = {
+#     disk_size      = 50
+#     instance_types = ["t3.small"]
+#   }
 
-  eks_managed_node_groups = {
-    green = {
-      min_size     = 2
-      max_size     = 4
-      desired_size = 2
+#   eks_managed_node_groups = {
+#     green = {
+#       min_size     = 2
+#       max_size     = 4
+#       desired_size = 2
 
-      instance_types = ["t3.small"]
-      capacity_type  = "SPOT"
-    }
-  }
+#       instance_types = ["t3.small"]
+#       capacity_type  = "SPOT"
+#     }
+#   }
 
-  tags = {
-    Environment = "boundary-demo-eks"
-  }
-}
+#   tags = {
+#     Environment = "boundary-demo-eks"
+#   }
+# }
 
 # SSH Target
 resource "aws_instance" "ssh-cert-target" {
@@ -219,95 +210,95 @@ module "ssh-cert-sec-group" {
   ]
 }
 
-#RDS Database Target
-resource "aws_db_subnet_group" "postgres" {
-  name       = "boundary-demo-group"
-  subnet_ids = module.boundary-eks-vpc.private_subnets
-}
+# #RDS Database Target
+# resource "aws_db_subnet_group" "postgres" {
+#   name       = "boundary-demo-group"
+#   subnet_ids = module.boundary-eks-vpc.private_subnets
+# }
 
-resource "random_password" "db_password" {
-  length  = 12
-  special = false
-}
+# resource "random_password" "db_password" {
+#   length  = 12
+#   special = false
+# }
 
-resource "aws_db_instance" "postgres" {
-  allocated_storage           = 10
-  db_name                     = "postgres"
-  engine                      = "postgres"
-  engine_version              = "12.15"
-  allow_major_version_upgrade = false
-  auto_minor_version_upgrade  = false
-  instance_class              = "db.t3.micro"
-  username                    = "vault"
-  password                    = random_password.db_password.result
-  db_subnet_group_name        = aws_db_subnet_group.postgres.name
-  skip_final_snapshot         = true
-  vpc_security_group_ids      = [module.rds-sec-group.security_group_id]
-}
+# resource "aws_db_instance" "postgres" {
+#   allocated_storage           = 10
+#   db_name                     = "postgres"
+#   engine                      = "postgres"
+#   engine_version              = "12.15"
+#   allow_major_version_upgrade = false
+#   auto_minor_version_upgrade  = false
+#   instance_class              = "db.t3.micro"
+#   username                    = "vault"
+#   password                    = random_password.db_password.result
+#   db_subnet_group_name        = aws_db_subnet_group.postgres.name
+#   skip_final_snapshot         = true
+#   vpc_security_group_ids      = [module.rds-sec-group.security_group_id]
+# }
 
-#RDS Security Group
-module "rds-sec-group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "4.17.1"
+# #RDS Security Group
+# module "rds-sec-group" {
+#   source  = "terraform-aws-modules/security-group/aws"
+#   version = "4.17.1"
 
-  name        = "rds-sec-group"
-  description = "Allow Access from Boundary Worker to Database endpoint"
-  vpc_id      = module.boundary-eks-vpc.vpc_id
+#   name        = "rds-sec-group"
+#   description = "Allow Access from Boundary Worker to Database endpoint"
+#   vpc_id      = module.boundary-eks-vpc.vpc_id
 
-  ingress_with_source_security_group_id = [
-    {
-      rule                     = "postgresql-tcp"
-      source_security_group_id = module.worker-sec-group.security_group_id
-    },
-  ]
-  ingress_with_cidr_blocks = [
-    {
-      rule        = "postgresql-tcp"
-      cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
-    }
-  ]
-}
+#   ingress_with_source_security_group_id = [
+#     {
+#       rule                     = "postgresql-tcp"
+#       source_security_group_id = module.worker-sec-group.security_group_id
+#     },
+#   ]
+#   ingress_with_cidr_blocks = [
+#     {
+#       rule        = "postgresql-tcp"
+#       cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
+#     }
+#   ]
+# }
 
-# Windows Target
-resource "aws_instance" "rdp-target" {
-  ami           = data.aws_ami.windows.id
-  instance_type = "t3.medium"
+# # Windows Target
+# resource "aws_instance" "rdp-target" {
+#   ami           = data.aws_ami.windows.id
+#   instance_type = "t3.medium"
 
-  key_name               = aws_key_pair.boundary_ec2_keys.key_name
-  monitoring             = true
-  subnet_id              = module.boundary-eks-vpc.private_subnets[1]
-  vpc_security_group_ids = [module.rdp-sec-group.security_group_id]
-  user_data              = templatefile("./template_files/windows-target.tftpl", { admin_pass = var.admin_pass })
+#   key_name               = aws_key_pair.boundary_ec2_keys.key_name
+#   monitoring             = true
+#   subnet_id              = module.boundary-eks-vpc.private_subnets[1]
+#   vpc_security_group_ids = [module.rdp-sec-group.security_group_id]
+#   user_data              = templatefile("./template_files/windows-target.tftpl", { admin_pass = var.admin_pass })
 
-  tags = {
-    Team = "IT"
-    Name = "rdp-target"
-  }
-}
+#   tags = {
+#     Team = "IT"
+#     Name = "rdp-target"
+#   }
+# }
 
-module "rdp-sec-group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "4.17.1"
+# module "rdp-sec-group" {
+#   source  = "terraform-aws-modules/security-group/aws"
+#   version = "4.17.1"
 
-  name        = "rdp-sec-group"
-  description = "Allow Access from Boundary Worker to RDP target"
-  vpc_id      = module.boundary-eks-vpc.vpc_id
+#   name        = "rdp-sec-group"
+#   description = "Allow Access from Boundary Worker to RDP target"
+#   vpc_id      = module.boundary-eks-vpc.vpc_id
 
-  ingress_with_source_security_group_id = [
-    {
-      rule                     = "rdp-tcp"
-      source_security_group_id = module.worker-sec-group.security_group_id
-    },
-  ]
+#   ingress_with_source_security_group_id = [
+#     {
+#       rule                     = "rdp-tcp"
+#       source_security_group_id = module.worker-sec-group.security_group_id
+#     },
+#   ]
 
-  ingress_with_cidr_blocks = [
-    {
-      rule        = "all-all"
-      description = "Allow ingress from everything in VPC"
-      cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
-    }
-  ]
-}
+#   ingress_with_cidr_blocks = [
+#     {
+#       rule        = "all-all"
+#       description = "Allow ingress from everything in VPC"
+#       cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
+#     }
+#   ]
+# }
 
 # Create bucket for session recording
 resource "random_string" "boundary_bucket_suffix" {

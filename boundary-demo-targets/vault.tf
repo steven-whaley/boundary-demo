@@ -51,13 +51,13 @@ data "vault_policy_document" "ssh-cert-role" {
   }
 }
 
-# Create Policy to read Dynamic DB secrets
-data "vault_policy_document" "db-secrets" {
-  rule {
-    path         = "${vault_database_secrets_mount.postgres.path}/creds/db1"
-    capabilities = ["read"]
-  }
-}
+# # Create Policy to read Dynamic DB secrets
+# data "vault_policy_document" "db-secrets" {
+#   rule {
+#     path         = "${vault_database_secrets_mount.postgres.path}/creds/db1"
+#     capabilities = ["read"]
+#   }
+# }
 
 #Create vault policies from policy documents
 resource "vault_policy" "boundary-token-policy-dev" {
@@ -84,19 +84,19 @@ resource "vault_policy" "ssh-cert-role" {
   policy    = data.vault_policy_document.ssh-cert-role.hcl
 }
 
-resource "vault_policy" "db-policy" {
-  namespace = vault_namespace.dev.path_fq
-  name      = "db-policy"
-  policy    = data.vault_policy_document.db-secrets.hcl
-}
+# resource "vault_policy" "db-policy" {
+#   namespace = vault_namespace.dev.path_fq
+#   name      = "db-policy"
+#   policy    = data.vault_policy_document.db-secrets.hcl
+# }
 
 # Create Tokens for Boundary to use for Credential Store
-resource "vault_token_auth_backend_role" "boundary-token-role-dev" {
-  namespace        = vault_namespace.dev.path_fq
-  role_name        = "boundary-controller-role-dev"
-  allowed_policies = [vault_policy.boundary-token-policy-dev.name, vault_policy.db-policy.name]
-  orphan           = true
-}
+# resource "vault_token_auth_backend_role" "boundary-token-role-dev" {
+#   namespace        = vault_namespace.dev.path_fq
+#   role_name        = "boundary-controller-role-dev"
+#   allowed_policies = [vault_policy.boundary-token-policy-dev.name, vault_policy.db-policy.name]
+#   orphan           = true
+# }
 
 resource "vault_token_auth_backend_role" "boundary-token-role-pie" {
   namespace        = vault_namespace.pie.path_fq
@@ -115,15 +115,15 @@ resource "vault_token" "boundary-token-pie" {
   period    = "20m"
 }
 
-resource "vault_token" "boundary-token-dev" {
-  namespace = vault_namespace.dev.path_fq
-  role_name = vault_token_auth_backend_role.boundary-token-role-dev.role_name
-  policies  = [vault_policy.boundary-token-policy-dev.name, vault_policy.db-policy.name]
-  no_parent = true
-  renewable = true
-  ttl       = "24h"
-  period    = "20m"
-}
+# resource "vault_token" "boundary-token-dev" {
+#   namespace = vault_namespace.dev.path_fq
+#   role_name = vault_token_auth_backend_role.boundary-token-role-dev.role_name
+#   policies  = [vault_policy.boundary-token-policy-dev.name, vault_policy.db-policy.name]
+#   no_parent = true
+#   renewable = true
+#   ttl       = "24h"
+#   period    = "20m"
+# }
 
 #### SSH Secrets Engine
 
@@ -171,30 +171,30 @@ resource "vault_ssh_secret_backend_role" "cert-role" {
 }
 
 #### Database Secrets Engine
-# Create DB secrets mount
-resource "vault_database_secrets_mount" "postgres" {
-  namespace = vault_namespace.dev.path_fq
-  path      = "database"
+# # Create DB secrets mount
+# resource "vault_database_secrets_mount" "postgres" {
+#   namespace = vault_namespace.dev.path_fq
+#   path      = "database"
 
-  postgresql {
-    name              = "postgres"
-    username          = "vault"
-    password          = random_password.db_password.result
-    connection_url    = "postgresql://{{username}}:{{password}}@${aws_db_instance.postgres.endpoint}/postgres"
-    verify_connection = true
-    allowed_roles     = ["db1"]
-  }
-}
+#   postgresql {
+#     name              = "postgres"
+#     username          = "vault"
+#     password          = random_password.db_password.result
+#     connection_url    = "postgresql://{{username}}:{{password}}@${aws_db_instance.postgres.endpoint}/postgres"
+#     verify_connection = true
+#     allowed_roles     = ["db1"]
+#   }
+# }
 
-# Create role for getting dynamic DB secrets
+# # Create role for getting dynamic DB secrets
 
-resource "vault_database_secret_backend_role" "db1" {
-  namespace = vault_namespace.dev.path_fq
-  name      = "db1"
-  backend   = vault_database_secrets_mount.postgres.path
-  db_name   = vault_database_secrets_mount.postgres.postgresql[0].name
-  creation_statements = [
-    "CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
-    "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
-  ]
-}
+# resource "vault_database_secret_backend_role" "db1" {
+#   namespace = vault_namespace.dev.path_fq
+#   name      = "db1"
+#   backend   = vault_database_secrets_mount.postgres.path
+#   db_name   = vault_database_secrets_mount.postgres.postgresql[0].name
+#   creation_statements = [
+#     "CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
+#     "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
+#   ]
+# }
