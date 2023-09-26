@@ -142,16 +142,16 @@ module "eks" {
   #EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     disk_size      = 50
-    instance_types = ["t3.small"]
+    instance_types = ["t3.micro"]
   }
 
   eks_managed_node_groups = {
     green = {
-      min_size     = 2
-      max_size     = 4
-      desired_size = 2
+      min_size     = 1
+      max_size     = 1
+      desired_size = 1
 
-      instance_types = ["t3.small"]
+      instance_types = ["t3.micro"]
       capacity_type  = "SPOT"
     }
   }
