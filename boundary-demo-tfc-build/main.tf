@@ -2,12 +2,12 @@
 
 resource "tfe_project" "boundary_demo_project" {
   organization = var.organization
-  name = "Boundary Demo Project"
+  name = "Boundary Demo Project - Test"
 }
 
 # Create the workspaces
 resource "tfe_workspace" "boundary_demo_init" {
-  name           = "boundary-demo-init"
+  name           = "boundary-demo-init-test"
   description = "Workspace to create HCP Boundary and Vault clusters"
   execution_mode = "remote"
   remote_state_consumer_ids = [tfe_workspace.boundary_demo_eks.id, tfe_workspace.boundary_demo_ad_secrets.id]
@@ -16,7 +16,7 @@ resource "tfe_workspace" "boundary_demo_init" {
 }
 
 resource "tfe_workspace" "boundary_demo_eks" {
-  name           = "boundary-demo-targets"
+  name           = "boundary-demo-targets-test"
   description = "Workspace to create Boundary Config and Targets in AWS"
   execution_mode = "remote"
   remote_state_consumer_ids = [tfe_workspace.boundary_demo_ad_secrets.id]
@@ -25,7 +25,7 @@ resource "tfe_workspace" "boundary_demo_eks" {
 }
 
 resource "tfe_workspace" "boundary_demo_ad_secrets" {
-  name           = "boundary-demo-ad-secrets"
+  name           = "boundary-demo-ad-secrets-test"
   description = "Workspace to create set up the AD secrets engine for use with the RDP target"
   execution_mode = "remote"
   assessments_enabled = false

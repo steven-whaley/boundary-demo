@@ -1,0 +1,67 @@
+#!/bin/sh
+yum update -y
+
+curl -Ss http://169.254.169.254/1.0/meta-data/local-ipv4 > /etc/private_ip
+host -t PTR $(cat /etc/private_ip) | awk '{print substr($NF, 1, length($NF)-1)}' > /etc/private_dns
+sed -e 's/$/:30922/' < /etc/private_dns > /etc/boundary_worker_nodeport
+
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"server\" sh -
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+helm repo add bitnami https://charts.bitnami.com/bitnami
+KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm install k8s-postgres --set auth.postgresPassword=${password} --set primary.service.type="NodePort" --set primary.service.nodePorts.postgresql="30932" bitnami/postgresql
+
+cat <<EOF > role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-full-secrets-abilities-with-labels
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["serviceaccounts", "serviceaccounts/token"]
+  verbs: ["create", "update", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["rolebindings", "clusterrolebindings"]
+  verbs: ["create", "update", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "clusterroles"]
+  verbs: ["bind", "escalate", "create", "update", "delete"]
+EOF
+
+cat <<EOF > role_binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vault-token-creator-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-full-secrets-abilities-with-labels
+subjects:
+- kind: ServiceAccount
+  name: vault
+  namespace: vault
+EOF
+
+cat <<EOF > payload.json
+{
+	"data": {
+		"cert": "abc",
+		"token": "123"
+	}
+}
+EOF
+
+kubectl create namespace vault
+kubectl create serviceaccount vault -n vault
+kubectl apply -f role.yaml
+kubectl apply -f role_binding.yaml
+
+sed -i "s/123/$(kubectl create token vault -n vault)/g" payload.json 
+
+sleep 60
+CERT=$(kubectl get cm kube-root-ca.crt -o jsonpath="{['data']['ca\.crt']}")
+sed -i "s|abc|$(echo $CERT)|g" payload.json 

@@ -93,17 +93,9 @@ module "worker-sec-group" {
       cidr_blocks = "0.0.0.0/0"
     },
     {
-      rule        = "ssh-tcp"
+      rule        = "all-all"
       cidr_blocks = module.boundary-eks-vpc.vpc_cidr_block
     },
-    {
-      rule        = "postgresql-tcp"
-      cidr_blocks = module.boundary-eks-vpc.vpc_cidr_block
-    },
-    {
-      rule        = "rdp-tcp"
-      cidr_blocks = module.boundary-eks-vpc.vpc_cidr_block
-    }
   ]
 
   egress_cidr_blocks = ["0.0.0.0/0"]

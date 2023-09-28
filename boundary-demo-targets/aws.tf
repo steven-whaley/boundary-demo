@@ -1,33 +1,3 @@
-locals {
-  cluster_name = "boundary-demo-cluster"
-  cloudinit_ssh_cert_target = {
-    write_files = [
-      {
-        content = "TrustedUserCAKeys /etc/ssh/ca-key.pub"
-        path    = "/etc/ssh/sshd_config"
-        append  = true
-      }
-    ]
-    runcmd = [
-      ["curl", "-o", "/etc/ssh/ca-key.pub", "-H", "X-Vault-Token: ${vault_token.read-key.client_token}", "-H", "X-Vault-Namespace: admin/${vault_namespace.pie.path_fq}", "${data.tfe_outputs.boundary_demo_init.values.vault_priv_url}/v1/${vault_mount.ssh.path}/public_key"],
-      ["chown", "1000:1000", "/etc/ssh/ca-key.pub"],
-      ["chmod", "644", "/etc/ssh/ca-key.pub"],
-      ["systemctl", "restart", "sshd"],
-      ["useradd", "-d", "/home/pie_user", "pie_user"],
-      ["useradd", "-d", "/home/pie_user2", "pie_user2"],
-    ]
-  }
-}
-
-data "cloudinit_config" "ssh_cert_target" {
-  gzip          = false
-  base64_encode = true
-  part {
-    content_type = "text/cloud-config"
-    content      = yamlencode(local.cloudinit_ssh_cert_target)
-  }
-}
-
 # Create EC2 key pair using public key provided in variable
 resource "aws_key_pair" "boundary_ec2_keys" {
   key_name   = "boundary-demo-ec2-key"
@@ -101,214 +71,66 @@ resource "aws_route" "vault" {
   vpc_peering_connection_id = hcp_aws_network_peering.vault.provider_peering_id
 }
 
-# # Create EKS Cluster boundary target
-# module "eks" {
-#   source  = "terraform-aws-modules/eks/aws"
-#   version = "18.31.2"
+# Create Bucket to store kubeconfig to retrieve later 
 
-#   cluster_name                    = local.cluster_name
-#   cluster_version                 = "1.24"
-#   cluster_endpoint_private_access = true
-#   cluster_endpoint_public_access  = true
-#   subnet_ids                      = module.boundary-eks-vpc.private_subnets
-#   vpc_id                          = module.boundary-eks-vpc.vpc_id
-
-#   cluster_addons = {
-#     vpc-cni = {
-#       most_recent = true
-#     }
-#   }
-
-#   cluster_security_group_additional_rules = {
-#     api_ingress_from_worker = {
-#       description              = "API Ingress from Boundary Worker"
-#       protocol                 = "tcp"
-#       from_port                = 443
-#       to_port                  = 443
-#       type                     = "ingress"
-#       source_security_group_id = module.worker-sec-group.security_group_id
-#     }
-#   }
-
-#   #EKS Managed Node Group(s)
-#   eks_managed_node_group_defaults = {
-#     disk_size      = 50
-#     instance_types = ["t3.small"]
-#   }
-
-#   eks_managed_node_groups = {
-#     green = {
-#       min_size     = 2
-#       max_size     = 4
-#       desired_size = 2
-
-#       instance_types = ["t3.small"]
-#       capacity_type  = "SPOT"
-#     }
-#   }
-
-#   tags = {
-#     Environment = "boundary-demo-eks"
-#   }
-# }
-
-# SSH Target
-resource "aws_instance" "ssh-cert-target" {
-  depends_on = [
-    vault_ssh_secret_backend_ca.ssh_ca, aws_vpc_peering_connection_options.dns
-  ]
-  lifecycle {
-    ignore_changes = [user_data_base64]
-  }
-  ami           = data.aws_ami.aws_linux_hvm2.id
-  instance_type = "t3.micro"
-
-  key_name                    = aws_key_pair.boundary_ec2_keys.key_name
-  monitoring                  = true
-  subnet_id                   = module.boundary-eks-vpc.private_subnets[1]
-  vpc_security_group_ids      = [module.ssh-cert-sec-group.security_group_id]
-  user_data_base64            = data.cloudinit_config.ssh_cert_target.rendered
-  user_data_replace_on_change = true
-
-  tags = {
-    Team = "PIE"
-    Name = "ssh-cert-target"
-  }
-}
-
-#Create SSH target security group
-module "ssh-cert-sec-group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "4.17.1"
-
-  name        = "ssh-cert-sec-group"
-  description = "Allow SSH access and from bastion"
-  vpc_id      = module.boundary-eks-vpc.vpc_id
-
-  ingress_with_source_security_group_id = [
-    {
-      rule                     = "ssh-tcp"
-      source_security_group_id = module.bastion-sec-group.security_group_id
-    },
-    {
-      rule                     = "ssh-tcp"
-      source_security_group_id = module.worker-sec-group.security_group_id
-    },
-  ]
-
-  egress_cidr_blocks = ["0.0.0.0/0"]
-  egress_rules       = ["https-443-tcp", "http-80-tcp"]
-
-  egress_with_cidr_blocks = [
-    {
-      from_port   = 8200
-      to_port     = 8200
-      protocol    = "tcp"
-      cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
-      description = "Allow Server to communicate with HCP Vault"
-    }
-  ]
-}
-
-# #RDS Database Target
-# resource "aws_db_subnet_group" "postgres" {
-#   name       = "boundary-demo-group"
-#   subnet_ids = module.boundary-eks-vpc.private_subnets
-# }
-
-# resource "random_password" "db_password" {
-#   length  = 12
-#   special = false
-# }
-
-# resource "aws_db_instance" "postgres" {
-#   allocated_storage           = 10
-#   db_name                     = "postgres"
-#   engine                      = "postgres"
-#   engine_version              = "12.15"
-#   allow_major_version_upgrade = false
-#   auto_minor_version_upgrade  = false
-#   instance_class              = "db.t3.micro"
-#   username                    = "vault"
-#   password                    = random_password.db_password.result
-#   db_subnet_group_name        = aws_db_subnet_group.postgres.name
-#   skip_final_snapshot         = true
-#   vpc_security_group_ids      = [module.rds-sec-group.security_group_id]
-# }
-
-# #RDS Security Group
-# module "rds-sec-group" {
-#   source  = "terraform-aws-modules/security-group/aws"
-#   version = "4.17.1"
-
-#   name        = "rds-sec-group"
-#   description = "Allow Access from Boundary Worker to Database endpoint"
-#   vpc_id      = module.boundary-eks-vpc.vpc_id
-
-#   ingress_with_source_security_group_id = [
-#     {
-#       rule                     = "postgresql-tcp"
-#       source_security_group_id = module.worker-sec-group.security_group_id
-#     },
-#   ]
-#   ingress_with_cidr_blocks = [
-#     {
-#       rule        = "postgresql-tcp"
-#       cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
-#     }
-#   ]
-# }
-
-# # Windows Target
-# resource "aws_instance" "rdp-target" {
-#   ami           = data.aws_ami.windows.id
-#   instance_type = "t3.medium"
-
-#   key_name               = aws_key_pair.boundary_ec2_keys.key_name
-#   monitoring             = true
-#   subnet_id              = module.boundary-eks-vpc.private_subnets[1]
-#   vpc_security_group_ids = [module.rdp-sec-group.security_group_id]
-#   user_data              = templatefile("./template_files/windows-target.tftpl", { admin_pass = var.admin_pass })
-
-#   tags = {
-#     Team = "IT"
-#     Name = "rdp-target"
-#   }
-# }
-
-# module "rdp-sec-group" {
-#   source  = "terraform-aws-modules/security-group/aws"
-#   version = "4.17.1"
-
-#   name        = "rdp-sec-group"
-#   description = "Allow Access from Boundary Worker to RDP target"
-#   vpc_id      = module.boundary-eks-vpc.vpc_id
-
-#   ingress_with_source_security_group_id = [
-#     {
-#       rule                     = "rdp-tcp"
-#       source_security_group_id = module.worker-sec-group.security_group_id
-#     },
-#   ]
-
-#   ingress_with_cidr_blocks = [
-#     {
-#       rule        = "all-all"
-#       description = "Allow ingress from everything in VPC"
-#       cidr_blocks = data.tfe_outputs.boundary_demo_init.values.hvn_cidr
-#     }
-#   ]
-# }
-
-# Create bucket for session recording
-resource "random_string" "boundary_bucket_suffix" {
+resource "random_string" "config_bucket_suffix" {
   length  = 6
   special = false
   upper   = false
 }
 
-resource "aws_s3_bucket" "boundary_recording_bucket" {
-  depends_on    = [aws_instance.worker]
-  bucket        = "boundary-recording-bucket-${random_string.boundary_bucket_suffix.result}"
+resource "aws_s3_bucket" "config_bucket" {
+  bucket        = "boundary-demo-config-bucket-${random_string.config_bucket_suffix.result}"
   force_destroy = true
+}
+
+resource "aws_iam_instance_profile" "s3_write_profile" {
+  
+  name = "s3-write-profile"
+  role = aws_iam_role.s3_write_role.name
+}
+
+data "aws_iam_policy_document" "s3_write_policy" {
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.config_bucket.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "s3_policy" {
+  name        = "boundary-demo-s3-policy"
+  description = "Policy used in Boundary demo to write kubeconfig to S3 bucket"
+  policy      = data.aws_iam_policy_document.s3_write_policy.json
+}
+
+resource "aws_iam_role" "s3_write_role" {
+  
+  name = "s3_write_role"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sts:AssumeRole"
+            ],
+            "Principal": {
+                "Service": [
+                    "ec2.amazonaws.com"
+                ]
+            }
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_policy_attachment" "s3_write_policy" {
+  name = "boundary-demo-s3-policy-attachment"
+  roles = [aws_iam_role.s3_write_role.name]
+  policy_arn = aws_iam_policy.s3_policy.arn
 }
