@@ -106,6 +106,14 @@ resource "tfe_variable" "public_key" {
   variable_set_id = tfe_variable_set.boundary_demo_varset.id
 }
 
+resource "tfe_variable" "organization" {
+  key             = "organization"
+  value           = var.organization
+  category        = "terraform"
+  description = "The TFC Organization being used."
+  variable_set_id = tfe_variable_set.boundary_demo_varset.id
+}
+
 resource "tfe_variable" "OKTA_API_TOKEN" {
   key             = "OKTA_API_TOKEN"
   value           = var.OKTA_API_TOKEN

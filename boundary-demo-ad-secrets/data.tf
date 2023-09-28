@@ -1,9 +1,9 @@
 data "tfe_outputs" "boundary_demo_init" {
-  organization = "swhashi"
+  organization = var.organization
   workspace    = "boundary-demo-init"
 }
 
 data "tfe_outputs" "boundary_demo_targets" {
-  organization = "swhashi"
+  organization = var.organization
   workspace    = "boundary-demo-targets"
 }
