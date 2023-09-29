@@ -28,3 +28,8 @@
 #   subnet_id              = module.boundary-eks-vpc.public_subnets[0]
 #   vpc_security_group_ids = [module.bastion-sec-group.security_group_id]
 # }
+
+# output "bastion_ip_address" {
+#   description = "Bastion host public IP"
+#   value       = module.bastion.public_ip
+# }

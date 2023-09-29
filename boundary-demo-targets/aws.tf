@@ -96,6 +96,11 @@ data "aws_iam_policy_document" "s3_write_policy" {
     actions   = ["s3:PutObject"]
     resources = ["${aws_s3_bucket.config_bucket.arn}/*"]
   }
+  statement {
+    effect = "Allow"
+    actions = ["ssm:PutParameter"]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "s3_policy" {

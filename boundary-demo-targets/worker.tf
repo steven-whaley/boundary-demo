@@ -91,11 +91,32 @@ module "worker-sec-group" {
       protocol    = "tcp"
       description = "Boundary Controller to Upsream"
       cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  egress_with_source_security_group_id = [
+    {
+      rule                     = "ssh-tcp"
+      description = "Allow SSH to SSH target"
+      source_security_group_id = module.k8s-sec-group.security_group_id
     },
     {
-      rule        = "all-all"
-      cidr_blocks = module.boundary-eks-vpc.vpc_cidr_block
+      rule = "rdp-tcp"
+      description = "Allow RDP to RDP target"
+      source_security_group_id = module.rdp-sec-group.security_group_id
     },
+    {
+      rule                     = "kubernetes-api-tcp"
+      description = "Allow K8s access on K8s target"
+      source_security_group_id = module.k8s-sec-group.security_group_id
+    },
+    {
+      from_port = 30932
+      to_port = 30932
+      protocol = "tcp"
+      description = "Allow Postgres access on exposed port"
+      source_security_group_id = module.k8s-sec-group.security_group_id
+    }
   ]
 
   egress_cidr_blocks = ["0.0.0.0/0"]

@@ -1,3 +1,8 @@
+variable "admin_pass" {
+  type        = string
+  description = "The password to set on the windows and linux targets for the admin user"
+}
+
 variable "region" {
   type        = string
   description = "The region to create instrastructure in"

@@ -1,16 +1,31 @@
 #!/bin/sh
 yum update -y
 
+# Set up SSH Certificate Auth
+echo "TrustedUserCAKeys /etc/ssh/ca-key.pub" >> /etc/ssh/sshd_config
+
+curl -o /etc/ssh/ca-key.pub -H "X-Vault-Token: ${vault_token}" -H "X-Vault-Namespace: admin/${vault_namespace}" \
+  ${vault_url}/v1/${vault_ssh_mount}/public_key
+chown 1000:1000 /etc/ssh/ca-key.pub
+chmod 644 /etc/ssh/ca-key.pub
+systemctl restart sshd
+useradd -d /home/pie_user pie_user
+useradd -d /home/pie_user2 pie_user2
+
+
+# Set up K3s
 curl -Ss http://169.254.169.254/1.0/meta-data/local-ipv4 > /etc/private_ip
 host -t PTR $(cat /etc/private_ip) | awk '{print substr($NF, 1, length($NF)-1)}' > /etc/private_dns
 sed -e 's/$/:30922/' < /etc/private_dns > /etc/boundary_worker_nodeport
 
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=\"server\" sh -
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
+# Set up postgresql pod
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 helm repo add bitnami https://charts.bitnami.com/bitnami
 KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm install k8s-postgres --set auth.postgresPassword=${password} --set primary.service.type="NodePort" --set primary.service.nodePorts.postgresql="30932" bitnami/postgresql
 
+# Set up Vault K8s secret engine role and rolebinding
 cat <<EOF > role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -46,22 +61,15 @@ subjects:
   namespace: vault
 EOF
 
-cat <<EOF > payload.json
-{
-	"data": {
-		"cert": "abc",
-		"token": "123"
-	}
-}
-EOF
-
 kubectl create namespace vault
 kubectl create serviceaccount vault -n vault
 kubectl apply -f role.yaml
 kubectl apply -f role_binding.yaml
 
-sed -i "s/123/$(kubectl create token vault -n vault)/g" payload.json 
+# Create Vault Token copy Token and CA Cert to parameter store for later use by Vault
+kubectl create token vault --duration=999999h -n vault > /tmp/vault-token
+aws ssm put-parameter --region us-west-2 --name token --value file:///tmp/vault-token --type String
 
-sleep 60
-CERT=$(kubectl get cm kube-root-ca.crt -o jsonpath="{['data']['ca\.crt']}")
-sed -i "s|abc|$(echo $CERT)|g" payload.json 
+sleep 30
+kubectl get cm kube-root-ca.crt -o jsonpath="{['data']['ca\.crt']}" > /tmp/cert
+aws ssm put-parameter --region us-west-2 --name cert --value file:///tmp/cert --type String
