@@ -71,31 +71,13 @@ resource "aws_route" "vault" {
   vpc_peering_connection_id = hcp_aws_network_peering.vault.provider_peering_id
 }
 
-# Create Bucket to store kubeconfig to retrieve later 
-
-resource "random_string" "config_bucket_suffix" {
-  length  = 6
-  special = false
-  upper   = false
-}
-
-resource "aws_s3_bucket" "config_bucket" {
-  bucket        = "boundary-demo-config-bucket-${random_string.config_bucket_suffix.result}"
-  force_destroy = true
-}
-
-resource "aws_iam_instance_profile" "s3_write_profile" {
+resource "aws_iam_instance_profile" "ssm_write_profile" {
   
-  name = "s3-write-profile"
-  role = aws_iam_role.s3_write_role.name
+  name = "ssm-write-profile"
+  role = aws_iam_role.ssm_write_role.name
 }
 
-data "aws_iam_policy_document" "s3_write_policy" {
-  statement {
-    effect    = "Allow"
-    actions   = ["s3:PutObject"]
-    resources = ["${aws_s3_bucket.config_bucket.arn}/*"]
-  }
+data "aws_iam_policy_document" "ssm_write_policy" {
   statement {
     effect = "Allow"
     actions = ["ssm:PutParameter"]
@@ -103,15 +85,15 @@ data "aws_iam_policy_document" "s3_write_policy" {
   }
 }
 
-resource "aws_iam_policy" "s3_policy" {
-  name        = "boundary-demo-s3-policy"
-  description = "Policy used in Boundary demo to write kubeconfig to S3 bucket"
-  policy      = data.aws_iam_policy_document.s3_write_policy.json
+resource "aws_iam_policy" "ssm_policy" {
+  name        = "boundary-demo-ssm-policy"
+  description = "Policy used in Boundary demo to kube info to SSM"
+  policy      = data.aws_iam_policy_document.ssm_write_policy.json
 }
 
-resource "aws_iam_role" "s3_write_role" {
+resource "aws_iam_role" "ssm_write_role" {
   
-  name = "s3_write_role"
+  name = "ssm_write_role"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -134,8 +116,40 @@ resource "aws_iam_role" "s3_write_role" {
 EOF
 }
 
-resource "aws_iam_policy_attachment" "s3_write_policy" {
-  name = "boundary-demo-s3-policy-attachment"
-  roles = [aws_iam_role.s3_write_role.name]
-  policy_arn = aws_iam_policy.s3_policy.arn
+resource "aws_iam_policy_attachment" "ssm_write_policy" {
+  name = "boundary-demo-ssm-policy-attachment"
+  roles = [aws_iam_role.ssm_write_role.name]
+  policy_arn = aws_iam_policy.ssm_policy.arn
+}
+
+# Create Parameter store entries so that TF can delete them on teardown
+
+resource "aws_ssm_parameter" "cert" {
+  lifecycle {
+    ignore_changes = [ value ]
+  }
+  name  = "cert"
+  type  = "String"
+  value = "placeholder"
+}
+
+resource "aws_ssm_parameter" "token" {
+  lifecycle {
+    ignore_changes = [ value ]
+  }
+  name  = "token"
+  type  = "String"
+  value = "placeholder"
+}
+
+# Create bucket for session recording
+resource "random_string" "boundary_bucket_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
+resource "aws_s3_bucket" "boundary_recording_bucket" {
+  bucket        = "boundary-recording-bucket-${random_string.boundary_bucket_suffix.result}"
+  force_destroy = true
 }

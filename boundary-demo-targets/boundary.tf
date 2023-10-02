@@ -90,8 +90,8 @@ resource "boundary_target" "pie-ssh-cert-target" {
     boundary_credential_library_vault_ssh_certificate.ssh_cert.id
   ]
   egress_worker_filter     = "\"${var.region}\" in \"/tags/region\""
- # enable_session_recording = true
- # storage_bucket_id        = boundary_storage_bucket.pie_session_recording_bucket.id
+ enable_session_recording = true
+ storage_bucket_id        = boundary_storage_bucket.pie_session_recording_bucket.id
 }
 
 resource "boundary_target" "pie-ssh-cert-target-admin" {
@@ -106,8 +106,8 @@ resource "boundary_target" "pie-ssh-cert-target-admin" {
     boundary_credential_library_vault_ssh_certificate.ssh_cert_admin.id
   ]
   egress_worker_filter     = "\"${var.region}\" in \"/tags/region\""
- # enable_session_recording = true
- # storage_bucket_id        = boundary_storage_bucket.pie_session_recording_bucket.id
+ enable_session_recording = true
+ storage_bucket_id        = boundary_storage_bucket.pie_session_recording_bucket.id
 }
 
 # Create PIE Vault Credential Store
@@ -288,4 +288,32 @@ resource "boundary_target" "it-rdp-target" {
     boundary_host_set_plugin.it_set.id
   ]
   egress_worker_filter = "\"${var.region}\" in \"/tags/region\""
+}
+
+# Create Session Recording Bucket
+# Delay creation to give the worker time to register
+
+resource "time_sleep" "worker_timer" {
+  depends_on = [aws_instance.worker]
+  create_duration = "120s"
+}
+
+resource "boundary_storage_bucket" "pie_session_recording_bucket" {
+  depends_on = [time_sleep.worker_timer]
+
+  name        = "PIE Session Recording Bucket"
+  description = "Session Recording bucket for PIE team"
+  scope_id    = "global"
+  plugin_name = "aws"
+  bucket_name = aws_s3_bucket.boundary_recording_bucket.id
+  attributes_json = jsonencode({
+    "region"                    = var.region,
+    disable_credential_rotation = true
+  })
+
+  secrets_json = jsonencode({
+    "access_key_id"     = aws_iam_access_key.boundary_dynamic_host_catalog.id,
+    "secret_access_key" = aws_iam_access_key.boundary_dynamic_host_catalog.secret
+  })
+  worker_filter = "\"${var.region}\" in \"/tags/region\""
 }

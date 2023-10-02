@@ -23,3 +23,23 @@ variable "public_key" {
   type        = string
   description = "The public key to use when creating the EC2 key pair to access AWS systems"
 }
+
+variable "organization" {
+    description = "The TFC Organization Name"
+    type = string
+}
+
+variable "okta_baseurl" {
+  description = "The base url for the Okta organization used for OIDC integration. Probably okta.com"
+  type        = string
+}
+
+variable "okta_org_name" {
+  description = "The organization name for the Okta organization use for OIDC integration i.e. dev-32201783"
+  type        = string
+}
+
+variable "okta_user_password" {
+  type        = string
+  description = "The password that will be set on the PIE, DEV, and IT Okta user accounts"
+}

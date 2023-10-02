@@ -194,12 +194,12 @@ resource "time_sleep" "wait_for_k8s" {
 }
 
 data "aws_ssm_parameter" "cert" {
-  depends_on = [time_sleep.wait_for_k8s]
+  depends_on = [time_sleep.wait_for_k8s, aws_ssm_parameter.cert]
   name = "cert"
 }
 
 data "aws_ssm_parameter" "token" {
-  depends_on = [time_sleep.wait_for_k8s]
+  depends_on = [time_sleep.wait_for_k8s, aws_ssm_parameter.token]
   name = "token"
 }
 
@@ -267,6 +267,7 @@ resource "vault_kv_secret_v2" "k8s_ca" {
 
 # Create DB secrets mount
 resource "vault_database_secrets_mount" "postgres" {
+  depends_on = [ time_sleep.wait_for_k8s ]
   namespace = vault_namespace.dev.path_fq
   path      = "database"
 

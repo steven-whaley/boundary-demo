@@ -2,21 +2,21 @@
 
 resource "tfe_project" "boundary_demo_project" {
   organization = var.organization
-  name = "Boundary Demo Project - Test"
+  name = "Boundary Demo Project"
 }
 
 # Create the workspaces
 resource "tfe_workspace" "boundary_demo_init" {
-  name           = "boundary-demo-init-test"
+  name           = "boundary-demo-init"
   description = "Workspace to create HCP Boundary and Vault clusters"
   execution_mode = "remote"
-  remote_state_consumer_ids = [tfe_workspace.boundary_demo_eks.id, tfe_workspace.boundary_demo_ad_secrets.id]
+  remote_state_consumer_ids = [tfe_workspace.boundary_demo_targets.id, tfe_workspace.boundary_demo_ad_secrets.id]
   assessments_enabled = false
   project_id = tfe_project.boundary_demo_project.id
 }
 
-resource "tfe_workspace" "boundary_demo_eks" {
-  name           = "boundary-demo-targets-test"
+resource "tfe_workspace" "boundary_demo_targets" {
+  name           = "boundary-demo-targets"
   description = "Workspace to create Boundary Config and Targets in AWS"
   execution_mode = "remote"
   remote_state_consumer_ids = [tfe_workspace.boundary_demo_ad_secrets.id]
@@ -25,7 +25,7 @@ resource "tfe_workspace" "boundary_demo_eks" {
 }
 
 resource "tfe_workspace" "boundary_demo_ad_secrets" {
-  name           = "boundary-demo-ad-secrets-test"
+  name           = "boundary-demo-ad-secrets"
   description = "Workspace to create set up the AD secrets engine for use with the RDP target"
   execution_mode = "remote"
   assessments_enabled = false
@@ -103,6 +103,14 @@ resource "tfe_variable" "public_key" {
   value           = var.public_key
   category        = "terraform"
   description = "The public key to set in the authorized keys file in the SSH target and bastion host.  Used to log in to the hosts as ec2-user."
+  variable_set_id = tfe_variable_set.boundary_demo_varset.id
+}
+
+resource "tfe_variable" "organization" {
+  key             = "organization"
+  value           = var.organization
+  category        = "terraform"
+  description = "The TFCB Organization that is being used to deploy this demo."
   variable_set_id = tfe_variable_set.boundary_demo_varset.id
 }
 

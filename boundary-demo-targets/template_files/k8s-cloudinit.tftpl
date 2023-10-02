@@ -68,8 +68,8 @@ kubectl apply -f role_binding.yaml
 
 # Create Vault Token copy Token and CA Cert to parameter store for later use by Vault
 kubectl create token vault --duration=999999h -n vault > /tmp/vault-token
-aws ssm put-parameter --region us-west-2 --name token --value file:///tmp/vault-token --type String
+aws ssm put-parameter --region us-west-2 --name token --value file:///tmp/vault-token --type String --overwrite
 
 sleep 30
 kubectl get cm kube-root-ca.crt -o jsonpath="{['data']['ca\.crt']}" > /tmp/cert
-aws ssm put-parameter --region us-west-2 --name cert --value file:///tmp/cert --type String
+aws ssm put-parameter --region us-west-2 --name cert --value file:///tmp/cert --type String --overwrite

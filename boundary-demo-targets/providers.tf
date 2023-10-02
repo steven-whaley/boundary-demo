@@ -18,11 +18,15 @@ terraform {
     vault = {
       version = "3.14.0"
     }
+    okta = {
+      source  = "okta/okta"
+      version = "3.46.0"
+    }
   }
   cloud {
     organization = "swhashi"
     workspaces {
-      name = "boundary-demo-targets-test"
+      name = "boundary-demo-targets"
     }
   }
 }

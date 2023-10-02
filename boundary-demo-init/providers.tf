@@ -9,7 +9,7 @@ terraform {
   cloud {
     organization = "swhashi"
     workspaces {
-      name = "boundary-demo-init-test"
+      name = "boundary-demo-init"
     }
   }
 }

@@ -42,8 +42,8 @@ data "aws_ami" "windows" {
 }
 
 data "tfe_outputs" "boundary_demo_init" {
-  organization = "swhashi"
-  workspace    = "boundary-demo-init-test"
+  organization = var.organization
+  workspace    = "boundary-demo-init"
 }
 
 data "aws_arn" "peer_vpc" {
