@@ -1,7 +1,7 @@
 # Windows Target
 resource "aws_instance" "rdp-target" {
   ami           = data.aws_ami.windows.id
-  instance_type = "t3.small"
+  instance_type = "t3.medium"
 
   key_name               = aws_key_pair.boundary_ec2_keys.key_name
   monitoring             = true

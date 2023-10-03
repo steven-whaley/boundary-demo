@@ -1,3 +1,8 @@
+variable "organization" {
+    description = "The TFC Organization Name"
+    type = string
+}
+
 variable "admin_pass" {
   type        = string
   description = "The password to set on the windows and linux targets for the admin user"
