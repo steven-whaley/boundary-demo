@@ -190,7 +190,7 @@ resource "vault_token" "boundary-token-dev" {
 # Get the config information we need from Parameter Store
 resource "time_sleep" "wait_for_k8s" {
   depends_on      = [aws_instance.k8s_cluster]
-  create_duration = "180s"
+  create_duration = "240s"
 }
 
 data "aws_ssm_parameter" "cert" {
