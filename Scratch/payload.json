@@ -1,2 +1,0 @@
-vault kv put -output-curl-string -namespace=admin/pie -mount=secrets k8s cert=@/tmp/ca.crt
-curl -X PUT -H "X-Vault-Request: true" -H "X-Vault-Namespace: admin/pie/" -H "X-Vault-Token: $VAULT_TOKEN" -d '{"data":{"cert":`cat /tmp/ca.crt`},"options":{}}' https://boundary-vault-cluster-private-vault-16453a72.168cc661.z1.hashicorp.cloud:8200/v1/secrets/data/k8s
