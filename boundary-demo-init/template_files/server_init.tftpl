@@ -1,0 +1,43 @@
+#!/bin/sh
+
+## Update Yum and install docker and vault
+yum update -y
+yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+yum install -y docker vault
+systemctl start docker
+
+# Start Vault container
+docker run --cap-add=IPC_LOCK -d -p 8200:8200 --name vault -v /etc/vault:/etc/vault hashicorp/vault-enterprise server -config=/etc/vault/vault.hcl
+
+## Set up Vault Container
+export VAULT_ADDR="http://127.0.0.1:8200"
+
+# Unseal Vault
+vault operator init > /tmp/init.txt
+
+count=1;
+
+cat /tmp/init.txt | while read line; do
+if (( $count <= 3 )); then
+    if [[ $line == *"Unseal Key"* ]]; then
+     IFS=':'
+     read none key <<< "$line"
+     vault operator unseal $key
+     ((count+=1))
+    fi
+fi
+done
+
+# Create Terraform user
+export VAULT_TOKEN=`grep "Initial Root Token" /tmp/init.txt | cut -d ":" -f2 | xargs` 
+
+cat <<EOF > /tmp/admin.hcl
+path "*"
+{
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+EOF
+
+vault auth enable userpass
+vault policy write admin /tmp/admin.hcl
+vault write auth/userpass/users/terraform password=${vaultpass} token_policies=admin token_no_default_policy=true
