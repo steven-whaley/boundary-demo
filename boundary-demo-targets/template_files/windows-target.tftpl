@@ -1,6 +1,6 @@
 <persist>true</persist>
 <powershell>
-Start-Transcript -Path "C:\Windows\cloudinit.log"
+Start-Transcript -Path "C:\Windows\cloudinit.log" -Append
 
 $path= 'HKLM:\Software\UserData'
 
@@ -11,22 +11,34 @@ if(!(Get-Item $Path -ErrorAction SilentlyContinue)) {
 
 $runCount = Get-ItemProperty -Path $path -Name Runcount -ErrorAction SilentlyContinue | Select-Object -ExpandProperty RunCount
 
-if($runCount -eq 0) {
-    $runCount = 1 + [int]$runCount
-    
-    net user Administrator "${admin_pass}"
+if($runCount -ge 0) {
+    switch($runCount) {
+        0 {
+            Write-Host "Run Count is" $runCount
+            $runCount = 1
+            Set-ItemProperty -Path $Path -Name RunCount -Value $runCount
+            Write-Host "Updated Run Count to" $runCount
 
-    $NewPassword = ConvertTo-SecureString "${admin_pass}" -AsPlainText -Force
+            Write-Host "Setting Admin Password"
+            net user Administrator "${admin_pass}"
+            
+            $NewPassword = ConvertTo-SecureString "${admin_pass}" -AsPlainText -Force
 
-    Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
-    Install-ADDSForest -DomainName boundary.lab -InstallDNS -SafeModeAdministratorPassword $NewPassword -Confirm:$false
-}
+            Write-Host "Installing Domain Services"
+            Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
+            Install-ADDSForest -DomainName boundary.lab -InstallDNS -SafeModeAdministratorPassword $NewPassword -Confirm:$false
+        }
+        1 {
+            Write-Host "Run Count is" $runCount
+            $runCount = 2
+            Set-ItemProperty -Path $Path -Name RunCount -Value $runCount
+            Write-Host "Updated Run Count to" $runCount
 
-if($runCount -eq 1) {
-    $runCount = 1 + [int]$runCount
-
-    Install-WindowsFeature AD-Certificate -IncludeManagementTools
-    Install-AdcsCertificationAuthority -CAType EnterpriseRootCA -CACommonName $(hostname) -Confirm:$false
-    Restart-Computer -Confirm:$false
+            Write-Host "Installing AD Certificate Services"
+            Install-WindowsFeature AD-Certificate -IncludeManagementTools
+            Install-AdcsCertificationAuthority -CAType EnterpriseRootCA -CACommonName $(hostname) -Confirm:$false
+            Restart-Computer -Confirm:$false  
+        }
+    }
 }
 </powershell>
