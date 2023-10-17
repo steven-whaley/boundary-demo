@@ -55,7 +55,7 @@ resource "boundary_scope" "pie_aws_project" {
 resource "boundary_target" "pie-k8s-target" {
   type                     = "tcp"
   name                     = "k8s-target"
-  description              = "k8s Target"
+  description              = "connect to the k8s Target with a token from the Vault K8s secret engine"
   scope_id                 = boundary_scope.pie_aws_project.id
   session_connection_limit = -1
   default_port             = 6443
@@ -70,7 +70,7 @@ resource "boundary_target" "pie-k8s-target" {
 resource "boundary_target" "pie-ssh-target" {
   type                     = "tcp"
   name                     = "ssh-target"
-  description              = "SSH Target"
+  description              = "Connect to the SSH target with a user supplied SSH key"
   scope_id                 = boundary_scope.pie_aws_project.id
   session_connection_limit = -1
   default_port             = 22
@@ -195,7 +195,7 @@ resource "boundary_scope" "dev_aws_project" {
 resource "boundary_target" "dev-db-target" {
   type                     = "tcp"
   name                     = "dev-db-target"
-  description              = "Dev main database"
+  description              = "Connect to the postgres database with Vault DB secrets engine credentials"
   scope_id                 = boundary_scope.dev_aws_project.id
   session_connection_limit = -1
   default_port             = 30932
@@ -280,7 +280,7 @@ resource "boundary_host_set_plugin" "it_set" {
 resource "boundary_target" "it-rdp-target" {
   type                     = "tcp"
   name                     = "it-rdp-target"
-  description              = "Target for testing RDP connections"
+  description              = "Connect to the RDP target with user supplied credentials"
   scope_id                 = boundary_scope.it_aws_project.id
   session_connection_limit = -1
   default_port             = 3389

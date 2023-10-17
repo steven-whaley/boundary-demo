@@ -128,8 +128,8 @@ When using the Okta integration four users are created in your directory.
 
 | User | Okta Group | Boundary Org | Description |
 | --------- | -------- | -------- | -------- |
+| global_user@boundary.lab | All | All | Has rights to connect to all targets in all orgs |
 | pie_user@boundary.lab | pie_users | pie_org | Has rights to connect to all targets in PIE org |
-| pie_user2@boundary.lab | pie_users | pie_org| Has rights to connect to all targets in PIE org |
 | dev_user@boundary.lab | dev_users | dev_org | Has rights to connect to all targets in DEV org |
 | it_user@boundary.lab | it_users | it_org | Has rights to connect to all targets in IT org |
 
@@ -184,7 +184,7 @@ You will still need credentials to connect to the EKS cluster via K8s, which you
 
 **On Windows**
 
-`boundary connect rdp -target-scope-name it_aws_project -target-name it-rdp-target `
+`boundary connect rdp -target-scope-name it_aws_project -target-name it-rdp-target`
 
 **On Mac**
 

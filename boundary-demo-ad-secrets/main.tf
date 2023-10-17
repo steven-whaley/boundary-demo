@@ -114,7 +114,7 @@ resource "boundary_credential_library_vault" "domain_admin" {
 resource "boundary_target" "it-rdp-target-admin" {
   type                     = "tcp"
   name                     = "it-rdp-target-admin"
-  description              = "Connect to Windows server with brokered domain admin credentials"
+  description              = "Connect to RDP target with Vault brokered domain admin credentials"
   scope_id                 = data.tfe_outputs.boundary_demo_targets.values.it_project_id
   session_connection_limit = -1
   default_port             = 3389

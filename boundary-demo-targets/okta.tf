@@ -29,7 +29,16 @@ resource "okta_app_oauth" "okta_app" {
   }
 }
 
-# Create then assign the pie, dev and IT users groups to the Okta App
+# Create then assign the pie, dev, IT, and global users to groups and groups to the Okta App
+resource "okta_user" "global_user" {
+  first_name = "Global"
+  last_name  = "User"
+  login      = "global_user@boundary.lab"
+  email      = "global_user@dev.null"
+  password                  = var.okta_user_password
+  expire_password_on_create = false
+}
+
 resource "okta_user" "pie_user" {
   first_name                = "PIE"
   last_name                 = "User"
@@ -39,27 +48,13 @@ resource "okta_user" "pie_user" {
   expire_password_on_create = false
 }
 
-resource "okta_user" "pie_user2" {
-  first_name = "PIE"
-  last_name  = "User2"
-  login      = "pie_user2@boundary.lab"
-  email      = "pie_user2@dev.null"
-  password                  = var.okta_user_password
-  expire_password_on_create = false
-}
-
 resource "okta_group" "pie_users" {
   name        = "pie_users"
   description = "Platform Infrastructure Engineering Group"
 }
 
-resource "okta_user_group_memberships" "pie_users" {
+resource "okta_user_group_memberships" "pie_user" {
   user_id = okta_user.pie_user.id
-  groups  = [okta_group.pie_users.id]
-}
-
-resource "okta_user_group_memberships" "pie_users2" {
-  user_id = okta_user.pie_user2.id
   groups  = [okta_group.pie_users.id]
 }
 
@@ -116,6 +111,15 @@ resource "okta_app_group_assignment" "it_users" {
   group_id = okta_group.it_users.id
 }
 
+resource "okta_user_group_memberships" "global_user" {
+  user_id = okta_user.global_user.id
+  groups  = [
+    okta_group.pie_users.id,
+    okta_group.dev_users.id,
+    okta_group.it_users.id
+    ]
+}
+
 # Create the OIDC auth method in boundary linked to the Okta Oauth App
 resource "boundary_auth_method_oidc" "oidc_auth_method" {
   name                 = "okta_auth"
@@ -145,7 +149,7 @@ resource "boundary_role" "okta_dev_role" {
   grant_strings = [
     "id=*;type=session;actions=list,read:self,cancel:self",
     "id=*;type=target;actions=list,authorize-session,read",
-    "id=*;type=host-set;actions=list,no-op",
+    "id=*;type=host-set;actions=list",
     "id=*;type=host;actions=list,read",
     "id=*;type=host-catalog;actions=list,read",
   ]
@@ -167,7 +171,7 @@ resource "boundary_role" "okta_pie_role" {
   grant_strings = [
     "id=*;type=session;actions=list,read:self,cancel:self",
     "id=*;type=target;actions=list,authorize-session,read",
-    "id=*;type=host-set;actions=list,no-op",
+    "id=*;type=host-set;actions=list",
     "id=*;type=host;actions=list,read",
     "id=*;type=host-catalog;actions=list,read",
   ]
@@ -189,7 +193,7 @@ resource "boundary_role" "okta_it_role" {
   grant_strings = [
     "id=*;type=session;actions=list,read:self,cancel:self",
     "id=*;type=target;actions=list,authorize-session,read",
-    "id=*;type=host-set;actions=read,list",
+    "id=*;type=host-set;actions=list,read",
     "id=*;type=host;actions=list,read",
     "id=*;type=host-catalog;actions=list,read",
   ]
