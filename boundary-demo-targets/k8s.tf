@@ -4,6 +4,9 @@ resource "random_password" "db_password" {
 }
 
 resource "aws_instance" "k8s_cluster" {
+  lifecycle {
+    ignore_changes = [ user_data ]
+  }
   depends_on = [ vault_ssh_secret_backend_ca.ssh_ca, aws_vpc_peering_connection_options.dns, aws_ssm_parameter.cert, aws_ssm_parameter.token ]
   associate_public_ip_address = false
   ami = data.aws_ami.aws_linux_hvm2.id

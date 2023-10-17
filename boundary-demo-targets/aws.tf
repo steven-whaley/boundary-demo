@@ -72,7 +72,6 @@ resource "aws_route" "vault" {
 }
 
 resource "aws_iam_instance_profile" "ssm_write_profile" {
-  
   name = "ssm-write-profile"
   role = aws_iam_role.ssm_write_role.name
 }

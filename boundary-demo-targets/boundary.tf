@@ -284,6 +284,8 @@ resource "boundary_target" "it-rdp-target" {
   scope_id                 = boundary_scope.it_aws_project.id
   session_connection_limit = -1
   default_port             = 3389
+  default_client_port = 54389
+
   host_source_ids = [
     boundary_host_set_plugin.it_set.id
   ]
@@ -298,10 +300,15 @@ resource "time_sleep" "worker_timer" {
   create_duration = "120s"
 }
 
+resource "random_string" "bucket_string" {
+  length = 4
+  special = false
+}
+
 resource "boundary_storage_bucket" "pie_session_recording_bucket" {
   depends_on = [time_sleep.worker_timer]
 
-  name        = "PIE Session Recording Bucket"
+  name        = "PIE Session Recording Bucket ${random_string.bucket_string.result}"
   description = "Session Recording bucket for PIE team"
   scope_id    = "global"
   plugin_name = "aws"

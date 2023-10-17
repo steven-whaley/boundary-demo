@@ -140,7 +140,7 @@ resource "boundary_managed_group" "dev_managed_group" {
 
 # Create the role for dev users to connect to targets in the AWS W2 Dev project
 resource "boundary_role" "okta_dev_role" {
-  name          = "QA Role"
+  name          = "Dev Role"
   principal_ids = [boundary_managed_group.dev_managed_group.id]
   grant_strings = [
     "id=*;type=session;actions=list,read:self,cancel:self",
@@ -184,12 +184,12 @@ resource "boundary_managed_group" "it_managed_group" {
 
 # Create the role for dev users to connect to targets in the AWS W2 IT project
 resource "boundary_role" "okta_it_role" {
-  name          = "PIE Role"
+  name          = "IT Role"
   principal_ids = [boundary_managed_group.it_managed_group.id]
   grant_strings = [
     "id=*;type=session;actions=list,read:self,cancel:self",
     "id=*;type=target;actions=list,authorize-session,read",
-    "id=*;type=host-set;actions=list,no-op",
+    "id=*;type=host-set;actions=read,list",
     "id=*;type=host;actions=list,read",
     "id=*;type=host-catalog;actions=list,read",
   ]

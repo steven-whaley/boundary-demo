@@ -117,8 +117,8 @@ resource "boundary_target" "it-rdp-target-admin" {
   description              = "Connect to Windows server with brokered domain admin credentials"
   scope_id                 = data.tfe_outputs.boundary_demo_targets.values.it_project_id
   session_connection_limit = -1
-  session_max_seconds = 360
   default_port             = 3389
+  default_client_port = 53389
   host_source_ids = [
     data.tfe_outputs.boundary_demo_targets.values.it_host_set_id
   ]  

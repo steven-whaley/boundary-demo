@@ -1,4 +1,5 @@
 # Windows Target
+
 resource "aws_instance" "rdp-target" {
   ami           = data.aws_ami.windows.id
   instance_type = "t3.medium"
@@ -8,7 +9,6 @@ resource "aws_instance" "rdp-target" {
   subnet_id              = module.boundary-eks-vpc.private_subnets[1]
   vpc_security_group_ids = [module.rdp-sec-group.security_group_id]
   user_data              = templatefile("./template_files/windows-target.tftpl", { admin_pass = var.admin_pass })
-
   tags = {
     Team = "IT"
     Name = "rdp-target"

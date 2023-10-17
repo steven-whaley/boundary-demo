@@ -267,7 +267,7 @@ resource "vault_kv_secret_v2" "k8s_ca" {
 
 # Create DB secrets mount
 resource "vault_database_secrets_mount" "postgres" {
-  depends_on = [ time_sleep.wait_for_k8s ]
+  depends_on = [ time_sleep.wait_for_k8s, aws_instance.k8s_cluster ]
   namespace = vault_namespace.dev.path_fq
   path      = "database"
 
