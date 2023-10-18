@@ -86,6 +86,10 @@ The following variables need to be set in the *boundary-demo-tfc-build* module. 
 It is recommended that you pass any variables marked sensitive as environment variables or through CLI flags.  
 
 ### To Build
+- Push credentials from doormat to your AWS variable set
+
+    - `doormat aws tf-push variable-set --id <variable set id> --account <aws_account_name>`
+    
 - Set the non-sensitive variables for the *boundary-demo-tfc-build* module in a terraform.tfvars file.  
 - Set the sensitive variables as environment variables. 
 
