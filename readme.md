@@ -160,61 +160,6 @@ When using the Okta integration four users are created in your directory.
 | it-rdp-target | it_org\it_aws_project | User supplied username and password | Connect using Administrator user and password set as admin_pass TF variable |
 | it-rdp-target-admin | it_org\it_aws_project | **Brokered** from Vault LDAP Secrets Engine | Connect using username as password provided by Vault in connection info |
 
-### Authenticate to Boundary
-Connect as admin user.  The admin_auth_method_id can be found in the outputs of the boundary-demo-init workspace:
-`boundary authenticate password -auth-method-id <admin_auth_method_id>`
-
-Connect as Okta user:
-`boundary authenticate`
-
-### Connect to the SSH certificate target as Okta user
-
-`boundary connect ssh -target-scope-name pie_aws_project -target-name pie-ssh-cert-target`
-
-You can run this twice when logged in via Okta as pie_user and then as pie_user2 to show that Boundary is passing your identity on to Vault which providers you a certificate for the appropriate user.  
-
-### Connect to the SSH certificate target as ec2-user admin account
-
-`boundary connect ssh -target-scope-name pie_aws_project -target-name pie-ssh-cert-target-admin`
-
-### Connect to SSH TCP target (no injected credentials)
-When you set up the *boundary-demo-tfc-build* workspace you set a public key to install on the EC2 instances.  You will use the private key that matches that public key to log in to the SSH server.  You can use the -i flag to point to the private key.  
-
-`boundary connect ssh -target-scope-name pie_aws_project -target-name pie-ssh-tcp-target -- -l ec2-user -i <path/to/private_key>`
-
-### Connect to the K8s target
-You will still need credentials to connect to the EKS cluster via K8s, which you can get via the AWS CLI.  Be sure to set the appropriate region where you deployed your AWS resources.  You will need the AWS CLI installed and configured to generate EKS credentials.  
-
-`aws eks update-kubeconfig --name boundary-demo-cluster --region $AWS_REGION`
-
-`boundary connect kube -target-scope-name pie_aws_project -target-name pie-k8s-target -- get nodes`
-
-### Connect to the Postgres database target
-`boundary connect postgres -target-scope-name dev_aws_project -target-name dev-db-target -dbname postgres`
-
-### Connect to the RDP target with user supplied credentials
-**Username:** BOUNDARY\Administrator   
-**Password:** The value of the *admin_pass* terraform variable in the boundary-demo-eks workspace
-
-**On Windows**
-
-`boundary connect rdp -target-scope-name it_aws_project -target-name it-rdp-target`
-
-**On Mac**
-
-The Mac RDP client requires using -exec to open it and the sleep command at the end controls how long before the session closes.  This is a limitation specifically on the RDP client on newer versions of OSX and has nothing to do with Boundary specifically.   
-
-`boundary connect rdp -exec bash -target-scope-name it_aws_project -target-name it-rdp-target -- -c "open rdp://full%20address=s={{boundary.addr}} && sleep 600"`
-
-### Connect to the RDP target with Vault brokered Domain Admin credentials
-
-
-**On Windows**
-
-`boundary connect rdp -target-scope-name it_aws_project -target-name it-rdp-target-admin`
-
-**On Mac**
-
-The Mac RDP client requires using -exec to open it and the sleep command at the end controls how long before the session closes.  This is a limitation specifically on the RDP client on newer versions of OSX and has nothing to do with Boundary specifically.   
-
-`boundary connect rdp -exec bash -target-scope-name it_aws_project -target-name it-rdp-target-admin -- -c "open rdp://full%20address=s={{boundary.addr}} && sleep 600"`
+### Connecting to Targets
+This video walks through connecting to the various targets that are created in the demo environment.  
+https://drive.google.com/file/d/17144hnS1_OvVsj9FWWFUYeblZliYKHYD/view?usp=share_link
