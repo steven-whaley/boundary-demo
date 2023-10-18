@@ -31,16 +31,20 @@ This terraform code builds an HCP Boundary enviroment that inclues connectivity 
 ## Setup
 ### Prerequisites
 **HCP Account**
+
 You will need an account on the Hashicorp Cloud Platform to create the Boundary and Vault clusters.  Sign up for an HCP account here:  https://www.hashicorp.com/cloud.  You will also need to create a Service Principal and Service Principal keys.  The documentation for creating a Service Principal is here:  https://developer.hashicorp.com/hcp/docs/hcp/admin/iam/service-principals.  
 
 **Okta Developer Account**
+
 You will need an Okta developer account to fully utilize this demo.  You can sign up for an account here: https://developer.okta.com/signup/
 Once logged in you will need to create an API token.  The process for creating an API token is here:  https://developer.okta.com/docs/guides/create-an-api-token/main/#create-the-token.  Be sure to save the token as you will need it later.  
 
 **A Variable Set with AWS credentials**
+
 You will need a pre-existing variable set with AWS credentials that have appropriate permissions to deploy the various resources.  If you are a Hashicorp employee with an SE demo account then you can use doormat to generate these credentials and push them into the appropriate variable set.  Documentation on using doormat can be found here:  https://hashicorp.atlassian.net/wiki/spaces/SE/pages/1617101761/Doormat.  
 
 **An SSH Key Pair**
+
 You will need an SSH key pair to set up authentication to the SSH target using user provided credentials.  You may already have a public and private key pair (generally id_rsa.pub and id_rsa) in the .ssh folder of your home directory if you are using Mac or Windows.  To create a new key pair you can use Putty or OpenSSL.  OpenSSL directions are here: https://wiki.osuosl.org/howtos/ssh_key_tutorial.html
 
 You will use the public key as an environment variable and the private key will be used to authenticate to the SSH target later.  
