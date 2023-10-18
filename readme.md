@@ -162,4 +162,4 @@ When using the Okta integration four users are created in your directory.
 
 ### Connecting to Targets
 This video walks through connecting to the various targets that are created in the demo environment.  
-https://drive.google.com/file/d/17144hnS1_OvVsj9FWWFUYeblZliYKHYD/view?usp=share_link
+https://www.youtube.com/watch?v=K_eBdgqwx9k
