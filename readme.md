@@ -166,7 +166,7 @@ When using the Okta integration four users are created in your directory.
 | pie-ssh-cert-target | pie_org\pie_aws_project | **Injected** using Vault SSH Cert Secrets Engine | Connects to the SSH target as the logged in username.  **Only usable when logged in via Okta as pie_user or global_user** |
 | pie-ssh-cert-target-admin | pie_org\pie_aws_project | **Injected** using Vault SSH Cert Secrets Engine | Connects to the SSH target as ec2-user |
 | pie-ssh-tcp-target | pie_org\pie_aws_project | User supplied ssh key | Connect using user supplied SSH key |
-| pie-k8s-target | pie_org\pie_aws_project | Vault brokered SA token | Connect using the k8s-connect script in the scripts folder of the repo.  See video below for more info |
+| pie-k8s-target | pie_org\pie_aws_project | **Brokered** SA token from Vault K8s Secrets Engine  Connect using the k8s-connect script in the scripts folder of the repo.  See video below for more info |
 | dev-db-target | dev_org\dev_aws_project | **Brokered** from Vault DB Secrets Engine | Connects using credentials brokered from Vault |
 | it-rdp-target | it_org\it_aws_project | User supplied username and password | Connect using Administrator@boundary.lab user and password set in admin_pass TF variable |
 | it-rdp-target-admin | it_org\it_aws_project | **Brokered** from Vault LDAP Secrets Engine | Connect using username (be sure to add @boundary.lab to the end) and password provided by Vault in connection info |
