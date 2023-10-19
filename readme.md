@@ -29,6 +29,9 @@ This terraform code builds an HCP Boundary enviroment that inclues connectivity 
 | EC2 Windows Instance | RDP Target |
 
 ## Setup
+
+This video walks through setting up most of the pre-requisites and building the environment: https://www.youtube.com/watch?v=k1ioZtfEXkk
+
 ### Prerequisites
 **HCP Account**
 
@@ -169,5 +172,6 @@ When using the Okta integration four users are created in your directory.
 | it-rdp-target-admin | it_org\it_aws_project | **Brokered** from Vault LDAP Secrets Engine | Connect using username as password provided by Vault in connection info |
 
 ### Connecting to Targets
-This video walks through connecting to the various targets that are created in the demo environment.  
+This video walks through connecting to the various targets that are created in the demo environment.  The .14 version of the Boundary Desktop client has an integrated shell that can be used to automatically connect to SSH targets with brokered or injected credentials.  
+
 https://www.youtube.com/watch?v=K_eBdgqwx9k
