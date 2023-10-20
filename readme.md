@@ -99,7 +99,7 @@ It is recommended that you pass any variables marked sensitive as environment va
     - For example:
 
     - `export TF_VAR_HCP_CLIENT_SECRET=123456789`
-- Update the **cloud block** in the providers.tf file in the *boundary-demo-init* and *boundary-demo-targets* workspaces to reflect your TFE/TFC organization name.  
+- Update the **cloud block** in the providers.tf file in the *boundary-demo-init*, *boundary-demo-targets*, and *boundary-demo-ad-secrets* workspaces to reflect your TFE/TFC organization name.  
 - Once all variables have been set, perform a terraform init and apply on the *boundary-demo-tfc-build* module.  
 
     - `boundary-demo-tfc-build % terraform init`
