@@ -35,7 +35,7 @@ This video walks through setting up most of the pre-requisites and building the 
 ### Prerequisites
 **HCP Account**
 
-You will need an account on the Hashicorp Cloud Platform to create the Boundary and Vault clusters.  Sign up for an HCP account here:  https://www.hashicorp.com/cloud.  You will also need to create a Service Principal and Service Principal keys.  The documentation for creating a Service Principal is here:  https://developer.hashicorp.com/hcp/docs/hcp/admin/iam/service-principals.  
+You will need an account on the Hashicorp Cloud Platform to create the Boundary and Vault clusters.  Sign up for an HCP account here:  https://www.hashicorp.com/cloud.  You will also need to create a Service Principal and Service Principal keys.  The documentation for creating a Service Principal is here:  https://developer.hashicorp.com/hcp/docs/hcp/admin/iam/service-principals.  **The Service Principal should be created at the Organization level rather than the project level.**  
 
 **Okta Developer Account**
 
@@ -50,7 +50,16 @@ You will need a pre-existing variable set with AWS credentials that have appropr
 
 You will need an SSH key pair to set up authentication to the SSH target using user provided credentials.  You may already have a public and private key pair (generally id_rsa.pub and id_rsa) in the .ssh folder of your home directory if you are using Mac or Windows.  To create a new key pair you can use Putty or OpenSSL.  OpenSSL directions are here: https://wiki.osuosl.org/howtos/ssh_key_tutorial.html
 
-You will use the public key as an environment variable and the private key will be used to authenticate to the SSH target later.  
+You will use the public key as an environment variable and the private key will be used to authenticate to the SSH target later.
+
+**The Boundary Desktop Client Installed**
+You will need the Boundary Desktop Client installed to demo certain features like the integrated terminal.  https://developer.hashicorp.com/boundary/tutorials/oss-getting-started/oss-getting-started-desktop-app
+
+**PSQL Binary Installed**
+You will need the PSQL binary installed to connect to the database server using the `boundary connect postgres` command.  Install PSQL based on instructions for your speicfic OS.  
+
+**RDP Client Installed**
+You will need a Remote Desktop Protocol client installed to connect to the RDP targets.  On Windows sytems this is installed automatically but Linux or Mac users will need to install a RDP client.  
 
 ### Workspaces and Variables
 This repo was built to run on Terraform Cloud or Enterprise.  It uses the tfe_outputs data source to pass parameters between the boundary_demo_init workspace and other workspaces.  If you want to run this locally you will need to modify the code to use cross state sharing to populate those values.  
@@ -83,7 +92,7 @@ The following variables need to be set in the *boundary-demo-tfc-build* module. 
 | **public_key** | terraform | No | The SSH public key to set on the AWS EC2 instances as the default login |
 | **aws_varset** | terraform | No | The name of a pre-existing Variable Set that contains AWS credentials set as environment variables |
 | **OKTA_API_TOKEN** | environment | Yes | The API token used to authenticate the Okta provider |
-| **HCP_CLIENT_ID** | environment | Yes | The Client ID used to authenticate the HCP provider |
+| **HCP_CLIENT_ID** | environment | Yes | The Client ID used to authenticate the HCP provider.  This should be linked to an Organization level Service Principal |
 | **HCP_CLIENT_SECRET** | environment | Yes | The Secret Key used to authenticate the HCP provider |
 
 It is recommended that you pass any variables marked sensitive as environment variables or through CLI flags.  
