@@ -1,3 +1,7 @@
+**THIS REPO HAS BEEN DEPRECATED.  PLEASE FORK AND MAINTAIN YOUR OWN COPY**
+**THE NEW VERSION OF THIS REPO IS LOCATED HERE:  https://github.com/steven-whaley/se-demo-hcp-boundary-lab_assets**
+**THE NEW VERSION IS MEANT TO BE USED WITH INSTRUQT AND USES TF COMMUNITY EDITION**
+
 # Boundary Demo
 
 ## Demo Environment

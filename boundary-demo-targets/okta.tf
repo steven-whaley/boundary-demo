@@ -147,11 +147,11 @@ resource "boundary_role" "okta_dev_role" {
   name          = "Dev Role"
   principal_ids = [boundary_managed_group.dev_managed_group.id]
   grant_strings = [
-    "id=*;type=session;actions=list,read:self,cancel:self",
-    "id=*;type=target;actions=list,authorize-session,read",
-    "id=*;type=host-set;actions=list",
-    "id=*;type=host;actions=list,read",
-    "id=*;type=host-catalog;actions=list,read",
+    "ids=*;type=session;actions=list,read:self,cancel:self",
+    "ids=*;type=target;actions=list,authorize-session,read",
+    "ids=*;type=host-set;actions=list",
+    "ids=*;type=host;actions=list,read",
+    "ids=*;type=host-catalog;actions=list,read",
   ]
   scope_id       = boundary_scope.dev_org.id
   grant_scope_id = boundary_scope.dev_aws_project.id
@@ -169,11 +169,11 @@ resource "boundary_role" "okta_pie_role" {
   name          = "PIE Role"
   principal_ids = [boundary_managed_group.pie_managed_group.id]
   grant_strings = [
-    "id=*;type=session;actions=list,read:self,cancel:self",
-    "id=*;type=target;actions=list,authorize-session,read",
-    "id=*;type=host-set;actions=list",
-    "id=*;type=host;actions=list,read",
-    "id=*;type=host-catalog;actions=list,read",
+    "ids=*;type=session;actions=list,read:self,cancel:self",
+    "ids=*;type=target;actions=list,authorize-session,read",
+    "ids=*;type=host-set;actions=list",
+    "ids=*;type=host;actions=list,read",
+    "ids=*;type=host-catalog;actions=list,read",
   ]
   scope_id       = boundary_scope.pie_org.id
   grant_scope_id = boundary_scope.pie_aws_project.id
@@ -191,11 +191,11 @@ resource "boundary_role" "okta_it_role" {
   name          = "IT Role"
   principal_ids = [boundary_managed_group.it_managed_group.id]
   grant_strings = [
-    "id=*;type=session;actions=list,read:self,cancel:self",
-    "id=*;type=target;actions=list,authorize-session,read",
-    "id=*;type=host-set;actions=list,read",
-    "id=*;type=host;actions=list,read",
-    "id=*;type=host-catalog;actions=list,read",
+    "ids=*;type=session;actions=list,read:self,cancel:self",
+    "ids=*;type=target;actions=list,authorize-session,read",
+    "ids=*;type=host-set;actions=list,read",
+    "ids=*;type=host;actions=list,read",
+    "ids=*;type=host-catalog;actions=list,read",
   ]
   scope_id       = boundary_scope.it_org.id
   grant_scope_id = boundary_scope.it_aws_project.id

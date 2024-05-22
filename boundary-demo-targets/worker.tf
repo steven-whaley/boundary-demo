@@ -17,6 +17,7 @@ locals {
       auth_storage_path = "/boundary/boundary-worker-${random_uuid.worker_uuid.result}"
       controller_generated_activation_token = "${boundary_worker.hcp_pki_worker.controller_generated_activation_token}"
       recording_storage_path="/boundary/storage/"
+      recording_storage_minimum_available_capacity = "500MB"
       tags {
         type = "public_instance"
         cloud = "aws"
