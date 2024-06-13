@@ -7,7 +7,7 @@
 # Boundary Demo
 
 ## Demo Environment
-This terraform code builds an HCP Boundary enviroment that inclues connectivity to HCP Vault for credential brokering and injection, Okta integration for OIDC authentication and managed groups, and a number of AWS resources that are used as workers and Boundary targets.  
+This terraform code builds an HCP Boundary enviroment that includes connectivity to HCP Vault for credential brokering and injection, Okta integration for OIDC authentication and managed groups, and a number of AWS resources that are used as workers and Boundary targets.  
 
 ### Features
 - SSH with Vault generated SSH Certificates and username templating
@@ -62,7 +62,7 @@ You will use the public key as an environment variable and the private key will 
 You will need the Boundary Desktop Client installed to demo certain features like the integrated terminal.  https://developer.hashicorp.com/boundary/tutorials/oss-getting-started/oss-getting-started-desktop-app
 
 **PSQL Binary Installed**
-You will need the PSQL binary installed to connect to the database server using the `boundary connect postgres` command.  Install PSQL based on instructions for your speicfic OS.  
+You will need the PSQL binary installed to connect to the database server using the `boundary connect postgres` command.  Install PSQL based on instructions for your specific OS.  
 
 **RDP Client Installed**
 You will need a Remote Desktop Protocol client installed to connect to the RDP targets.  On Windows sytems this is installed automatically but Linux or Mac users will need to install a RDP client.  
@@ -92,7 +92,7 @@ The following variables need to be set in the *boundary-demo-tfc-build* module. 
 | **boundary_password** | terraform | Yes | The password of the default admin user created in the HCP Boundary Cluster |
 | **region** | terraform | No | The AWS region into which to deploy the Hashicorp Virtual Network and AWS resources |
 | **okta_baseurl** | terraform | No | The base url of the Okta organization to use for OIDC integration.  Usually okta.com |
-| **okta_org_name** | terraform | No | The organization name of hte OKta organization to use for OIDC integration i.e dev-32201783 |
+| **okta_org_name** | terraform | No | The organization name of the OKta organization to use for OIDC integration i.e dev-32201783 |
 | **okta_user_password** | terraform | Yes | The password to set on the Okta users created and added to the Boundary application |
 | **admin_pass** | terraform | Yes | The password to set for the Administrator account on the Windows target |
 | **public_key** | terraform | No | The SSH public key to set on the AWS EC2 instances as the default login |
@@ -134,7 +134,7 @@ It is recommended that you pass any variables marked sensitive as environment va
 
     - `boundary-demo-targets % terraform apply -auto-approve`
     
-- Wait about 10 minutes after building the *boundary-demo-targets* workspace for the rdp-target EC2 instance to finish running it's cloudinit script which requires two reboots.  The *boundary-demo-ad-secrets* workspace run will fail if the cloudinit has not completely finished.  
+- Wait about 10 minutes after building the *boundary-demo-targets* workspace for the rdp-target EC2 instance to finish running it's cloudinit script which requires two (2) reboots.  The *boundary-demo-ad-secrets* workspace run will fail if the cloudinit has not completely finished.  
 
 - Run the *boundary-demo-ad-secrets* workspace
 
@@ -162,7 +162,7 @@ The TF code creates a Session Recording Bucket object in the global scope.  **Bo
 
 ## Connecting to Targets
 ### Okta Users
-When using the Okta integration four users are created in your directory.  
+When using the Okta integration four (4) users are created in your directory.  
 
 **Passwords** - All Okta users have the same password which is the value of the okta_user_password terraform variable that you set in the *boundary-demo-tfc-build* workspace. 
 
@@ -187,6 +187,6 @@ When using the Okta integration four users are created in your directory.
 | it-rdp-target-admin | it_org\it_aws_project | **Brokered** from Vault LDAP Secrets Engine | Connect using username (be sure to add @boundary.lab to the end) and password provided by Vault in connection info |
 
 ### Connecting to Targets
-This video walks through connecting to the various targets that are created in the demo environment.  The .14 version of the Boundary Desktop client has an integrated shell that can be used to automatically connect to SSH targets with brokered or injected credentials.  
+This video walks through connecting to the various targets that are created in the demo environment.  The 0.14 version of the Boundary Desktop client has an integrated shell that can be used to automatically connect to SSH targets with brokered or injected credentials.  
 
 https://www.youtube.com/watch?v=K_eBdgqwx9k
